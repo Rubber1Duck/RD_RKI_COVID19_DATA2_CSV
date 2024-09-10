@@ -92,14 +92,12 @@ def read_csv(filename, path, dtype):
     return df 
 
 def calc_incidence(df):
-    idIndexes = df.index.to_list()
+    Indexes = df.index.to_list()
     y = 0
-    for index in idIndexes:
-        indexPos = idIndexes.index(index)
-        cases7d = sum(df["cases"].values[indexPos - y:indexPos + 1])
-        df.at[index, "c7"] = cases7d
+    for index in Indexes:
+        indexPos = Indexes.index(index)
+        df.at[index, "c7"] = sum(df["cases"].values[indexPos - y:indexPos + 1])
         if y < 6: y += 1
-    df["i7"] = (df["c7"] / df["Einwohner"] * 100000).round(5)
     df["c7"] = df["c7"].astype(int)
     return df
 
