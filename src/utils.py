@@ -15,8 +15,8 @@ def squeeze_dataframe(df):
             df[col] = pd.to_numeric(df[col], downcast="integer")
         elif type == "object":
             df[col] = df[col].astype(CategoricalDtype(ordered=True))
-
     return df
+
 
 def write_csv(df, filename, path, dtype, mode='w'):
     fullpath = os.path.join(path, filename)
@@ -25,6 +25,7 @@ def write_csv(df, filename, path, dtype, mode='w'):
         header = False
     df.to_csv(path_or_buf=fullpath, mode=mode, index=False, header=header, lineterminator="\n", encoding="utf-8", date_format="%Y-%m-%d", columns=dtype.keys())
     return
+
 
 def write_file(df, fn, compression=""):
     fn_ext = os.path.splitext(fn)[1]
@@ -39,7 +40,6 @@ def write_file(df, fn, compression=""):
     else:
         print("oopsy in write_file()! File extension unknown:", fn_ext)
         quit(0)
-
     return
 
 
@@ -59,14 +59,12 @@ def write_json(df, fn, pt, Datenstand="", archivePath=""):
         force_ascii=False,
         compression="infer",
     )
-
     return
 
 
 def read_json(filename, dtype, path=""):
     full_filename = os.path.join(path, filename)
     df = pd.read_json(full_filename, dtype=dtype)
-
     return df
 
 
@@ -82,30 +80,33 @@ def read_file(fn):
     else:
         print("oopsy in read_file()! File extension unknown:", fn_ext)
         quit(0)
-
     return df
+
 
 def read_csv(filename, path, dtype):
     full_filename = os.path.join(path, filename)
     df = pd.read_csv(filepath_or_buffer=full_filename, engine="pyarrow", usecols=dtype.keys(), dtype=dtype)
-
     return df 
+
 
 def calc_incidence(df):
     Indexes = df.index.to_list()
+    df_cases_values = df["cases"].values
     y = 0
     for index in Indexes:
         indexPos = Indexes.index(index)
-        df.at[index, "c7"] = sum(df["cases"].values[indexPos - y:indexPos + 1])
+        df.at[index, "c7"] = sum(df_cases_values[indexPos - y:indexPos + 1])
         if y < 6: y += 1
     df["c7"] = df["c7"].astype(int)
     return df
+
 
 def copy(source, destination):
    with open(source, 'rb') as file:
        myFile = file.read()
    with open(destination, 'wb') as file:
        file.write(myFile)
+
 
 def get_different_rows(source_df, new_df):
     """Returns just the rows from the new dataframe that differ from the source dataframe"""
