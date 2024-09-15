@@ -346,7 +346,7 @@ def update_mass(meta):
     BV_csv_path = os.path.join(base_path, "..", "Bevoelkerung", "Bevoelkerung.csv")
     BV_dtypes = {"AGS": "str", "Altersgruppe": "str", "Name": "str", "GueltigAb": "object", "GueltigBis": "object",
                  "Einwohner": "Int32", "männlich": "Int32", "weiblich": "Int32"}
-    CV_dtypes = {"IdLandkreis": "str", "Altersgruppe": "str", "Geschlecht": "str", "NeuerFall": "Int32", "NeuerTodesfall": "Int32", "NeuGenesen": "Int32",
+    CV_dtypes = {"IdLandkreis": "str", "NeuerFall": "Int32", "NeuerTodesfall": "Int32", "NeuGenesen": "Int32",
                  "AnzahlFall": "Int32", "AnzahlTodesfall": "Int32", "AnzahlGenesen": "Int32", "Meldedatum": "object"}
 
     # open bevoelkerung.csv
@@ -378,7 +378,7 @@ def update_mass(meta):
     print(f"{aktuelleZeit} : loading {fileName} (size: {fileSize} bytes) to dataframe. ", end="")
     
     LK = pd.read_csv(fileNameFull, engine="pyarrow", usecols=CV_dtypes.keys(), dtype=CV_dtypes)
-    LK.sort_values(by=["IdLandkreis", "Altersgruppe", "Geschlecht", "Meldedatum"], axis=0, inplace=True, ignore_index=True)
+    LK.sort_values(by=["IdLandkreis", "Meldedatum"], axis=0, inplace=True, ignore_index=True)
     LK.reset_index(drop=True, inplace=True)
 
     # ----- Squeeze the dataframe to ideal memory size (see "compressing" Medium article and run_dataframe_squeeze.py for background)
@@ -387,14 +387,13 @@ def update_mass(meta):
     
     t2 = time.time()
     print(f"Done in {round((t2 - t1), 3)} secs. {LK.shape[0]} rows. {round(LK.shape[0] / (t2 - t1), 1)} rows/sec.")
-    t1 = time.time()
     
     aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
     print(f"{aktuelleZeit} : add missing columns. ", end="")
     t1 = time.time()
     LK["IdLandkreis"] = LK['IdLandkreis'].map('{:0>5}'.format)
     LK.insert(loc=0, column="IdBundesland", value=LK["IdLandkreis"].str.slice(0,2))
-    LK["Meldedatum"] = pd.to_datetime(LK["Meldedatum"]).dt.date
+    #LK["Meldedatum"] = pd.to_datetime(LK["Meldedatum"]).dt.date
     
     # ----- Squeeze the dataframe to ideal memory size (see "compressing" Medium article and run_dataframe_squeeze.py for background)
     LK = ut.squeeze_dataframe(LK)
@@ -415,22 +414,22 @@ def update_mass(meta):
     LK["AnzahlFall"] = np.where(LK["NeuerFall"].isin([1, 0]), LK["AnzahlFall"], 0).astype(int)
     LK["AnzahlTodesfall"] = np.where(LK["NeuerTodesfall"].isin([1, 0, -9]), LK["AnzahlTodesfall"], 0).astype(int)
     LK["AnzahlGenesen"] = np.where(LK["NeuGenesen"].isin([1, 0, -9]), LK["AnzahlGenesen"], 0).astype(int)
-    LK.drop(["NeuerFall", "NeuerTodesfall", "NeuGenesen", "Altersgruppe", "Geschlecht"], inplace=True, axis=1)
+    LK.drop(["NeuerFall", "NeuerTodesfall", "NeuGenesen"], inplace=True, axis=1)
     LK.rename(columns={"AnzahlFall": "cases", "AnzahlTodesfall": "deaths", "AnzahlGenesen": "recovered"}, inplace=True)
     agg_key = {
-        c: "max" if c in ["IdBundesland", "Datenstand"] else "sum"
+        c: "max" if c in ["IdBundesland"] else "sum"
         for c in LK.columns
         if c not in key_list_LK_hist
     }
     LK = LK.groupby(by=key_list_LK_hist, as_index=False, observed=True).agg(agg_key)
     agg_key = {
-        c: "max" if c in ["IdLandkreis", "Datenstand"] else "sum"
+        c: "max" if c in ["IdLandkreis"] else "sum"
         for c in LK.columns
         if c not in key_list_BL_hist
     }
     BL = LK.groupby(by=key_list_BL_hist, as_index=False, observed=True).agg(agg_key)
     agg_key = {
-        c: "max" if c in ["IdBundesland", "IdLandkreis", "Datenstand"] else "sum"
+        c: "max" if c in ["IdBundesland", "IdLandkreis"] else "sum"
         for c in BL.columns
         if c not in key_list_ID0_hist
     }
@@ -444,9 +443,7 @@ def update_mass(meta):
     BL = pd.concat([ID0, BL])
     BL.sort_values(by=key_list_BL_hist, inplace=True)
     BL.reset_index(inplace=True, drop=True)
-    LK["Meldedatum"] = pd.to_datetime(LK["Meldedatum"]).dt.date
-    BL["Meldedatum"] = pd.to_datetime(BL["Meldedatum"]).dt.date
-
+    
     # fill dates for every region
     startDate = "2020-01-01"
     date_range_str = []
@@ -455,7 +452,7 @@ def update_mass(meta):
     allDates = pd.DataFrame(date_range_str, columns=["Meldedatum"])
     BLDates = pd.DataFrame(pd.unique(BL["IdBundesland"]).copy(), columns=["IdBundesland"])
     LKDates = pd.DataFrame(pd.unique(LK["IdLandkreis"]).copy(), columns=["IdLandkreis"])
-    # add Bundesland, Landkreis and Einwohner
+    # add Einwohner
     BV_mask = ((BV_BL_A00["AGS"].isin(BLDates["IdBundesland"])) & (BV_BL_A00["GueltigAb"] <= Datenstand) & (BV_BL_A00["GueltigBis"] >= Datenstand))
     BV_masked = BV_BL_A00[BV_mask].copy()
     BV_masked.drop(["GueltigAb", "GueltigBis", "Altersgruppe", "männlich", "weiblich", "Name"], inplace=True, axis=1)
@@ -472,8 +469,7 @@ def update_mass(meta):
     BLDates = ut.squeeze_dataframe(BLDates)
     LKDates = LKDates.merge(allDates, how="cross")
     LKDates = ut.squeeze_dataframe(LKDates)
-    BLDates["Meldedatum"] = pd.to_datetime(BLDates["Meldedatum"]).dt.date   
-    LKDates["Meldedatum"] = pd.to_datetime(LKDates["Meldedatum"]).dt.date
+    
     BL = BL.merge(BLDates, how="right", on=["IdBundesland", "Meldedatum"])
     LK = LK.merge(LKDates, how="right", on=["IdLandkreis", "Meldedatum"])
     LK = LK[LK["Landkreis"].notna()]
