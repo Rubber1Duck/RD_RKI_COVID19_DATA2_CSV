@@ -354,33 +354,15 @@ def update_mass(meta):
     BV["GueltigAb"] = pd.to_datetime(BV["GueltigAb"])
     BV["GueltigBis"] = pd.to_datetime(BV["GueltigBis"])
 
-    BV_BL = BV[BV["AGS"].str.len() == 2].copy()
-    BV_BL.reset_index(inplace=True, drop=True)
-
-    BV_BL_A00 = BV_BL[BV_BL["Altersgruppe"] == "A00+"].copy()
-    BV_BL_A00.reset_index(inplace=True, drop=True)
-
-    BV_LK = BV[BV["AGS"].str.len() == 5].copy()
-    BV_LK.reset_index(inplace=True, drop=True)
-
-    BV_LK_A00 = BV_LK[BV_LK["Altersgruppe"] == "A00+"].copy()
-    BV_LK_A00.reset_index(inplace=True, drop=True)
-
     # load covid latest from web
     t1 = time.time()
-    fileName = meta["filename"]
-    fileSize = int(meta["filesize"])
-    fileNameFull = meta["filepath"]
-    timeStamp = meta["modified"]
-    Datenstand = dt.datetime.fromtimestamp(timeStamp / 1000)
+    Datenstand = dt.datetime.fromtimestamp(meta["modified"] / 1000)
     Datenstand = Datenstand.replace(hour=0, minute=0, second=0, microsecond=0)
     aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
-    print(f"{aktuelleZeit} : loading {fileName} (size: {fileSize} bytes) to dataframe. ", end="")
+    print(f"{aktuelleZeit} : loading {meta['filename']} (size: {meta['filesize']} bytes) to dataframe. ", end="")
     
-    LK = pd.read_csv(fileNameFull, engine="pyarrow", usecols=CV_dtypes.keys(), dtype=CV_dtypes)
-    LK.sort_values(by=["IdLandkreis", "Meldedatum"], axis=0, inplace=True, ignore_index=True)
-    LK.reset_index(drop=True, inplace=True)
-
+    LK = pd.read_csv(meta["filepath"], engine="pyarrow", usecols=CV_dtypes.keys(), dtype=CV_dtypes)
+    
     # ----- Squeeze the dataframe to ideal memory size (see "compressing" Medium article and run_dataframe_squeeze.py for background)
     LK = ut.squeeze_dataframe(LK)
 
@@ -393,8 +375,7 @@ def update_mass(meta):
     t1 = time.time()
     LK["IdLandkreis"] = LK['IdLandkreis'].map('{:0>5}'.format)
     LK.insert(loc=0, column="IdBundesland", value=LK["IdLandkreis"].str.slice(0,2))
-    #LK["Meldedatum"] = pd.to_datetime(LK["Meldedatum"]).dt.date
-    
+        
     # ----- Squeeze the dataframe to ideal memory size (see "compressing" Medium article and run_dataframe_squeeze.py for background)
     LK = ut.squeeze_dataframe(LK)
     
@@ -443,32 +424,23 @@ def update_mass(meta):
     BL = pd.concat([ID0, BL])
     BL.sort_values(by=key_list_BL_hist, inplace=True)
     BL.reset_index(inplace=True, drop=True)
+
+    BL["Meldedatum"] = BL["Meldedatum"].astype(str)
+    LK["Meldedatum"] = LK["Meldedatum"].astype(str)
     
     # fill dates for every region
-    startDate = "2020-01-01"
-    date_range_str = []
-    for datum in pd.date_range(end=(Datenstand - dt.timedelta(days=1)), start=startDate).to_list():
-        date_range_str.append(datum.strftime("%Y-%m-%d"))
-    allDates = pd.DataFrame(date_range_str, columns=["Meldedatum"])
-    BLDates = pd.DataFrame(pd.unique(BL["IdBundesland"]).copy(), columns=["IdBundesland"])
-    LKDates = pd.DataFrame(pd.unique(LK["IdLandkreis"]).copy(), columns=["IdLandkreis"])
+    allDates = ut.squeeze_dataframe(pd.DataFrame(pd.date_range(end=(Datenstand - dt.timedelta(days=1)), start="2020-01-01").astype(str), columns=["Meldedatum"]))
     # add Einwohner
-    BV_mask = ((BV_BL_A00["AGS"].isin(BLDates["IdBundesland"])) & (BV_BL_A00["GueltigAb"] <= Datenstand) & (BV_BL_A00["GueltigBis"] >= Datenstand))
-    BV_masked = BV_BL_A00[BV_mask].copy()
-    BV_masked.drop(["GueltigAb", "GueltigBis", "Altersgruppe", "männlich", "weiblich", "Name"], inplace=True, axis=1)
-    BV_masked.rename(columns={"AGS": "IdBundesland"}, inplace=True)
-    BLDates = BLDates.merge(right=BV_masked, on=["IdBundesland"], how="left")
+    BL_BV = BV[((BV["AGS"].isin(BL["IdBundesland"])) & (BV["GueltigAb"] <= Datenstand) & (BV["GueltigBis"] >= Datenstand) & (BV["Altersgruppe"] == "A00+") & (BV["AGS"].str.len() == 2))].copy()
+    BL_BV.drop(["GueltigAb", "GueltigBis", "Altersgruppe", "männlich", "weiblich", "Name"], inplace=True, axis=1)
+    BL_BV.rename(columns={"AGS": "IdBundesland"}, inplace=True)
 
-    BV_mask = ((BV_LK_A00["AGS"].isin(LK["IdLandkreis"])) & (BV_LK_A00["GueltigAb"] <= Datenstand) & (BV_LK_A00["GueltigBis"] >= Datenstand))
-    BV_masked = BV_LK_A00[BV_mask].copy()
-    BV_masked.drop(["GueltigAb", "GueltigBis", "Altersgruppe", "männlich", "weiblich"], inplace=True, axis=1)
-    BV_masked.rename(columns={"AGS": "IdLandkreis", "Name": "Landkreis"}, inplace=True)
-    LKDates = LKDates.merge(right=BV_masked, on="IdLandkreis", how="left")
+    LK_BV = BV[((BV["AGS"].isin(LK["IdLandkreis"])) & (BV["GueltigAb"] <= Datenstand) & (BV["GueltigBis"] >= Datenstand) & (BV["Altersgruppe"] == "A00+") & (BV["AGS"].str.len() == 5))].copy()
+    LK_BV.drop(["GueltigAb", "GueltigBis", "Altersgruppe", "männlich", "weiblich"], inplace=True, axis=1)
+    LK_BV.rename(columns={"AGS": "IdLandkreis", "Name": "Landkreis"}, inplace=True)
 
-    BLDates = BLDates.merge(allDates, how="cross")
-    BLDates = ut.squeeze_dataframe(BLDates)
-    LKDates = LKDates.merge(allDates, how="cross")
-    LKDates = ut.squeeze_dataframe(LKDates)
+    BLDates = ut.squeeze_dataframe(BL_BV.merge(allDates, how="cross"))
+    LKDates = ut.squeeze_dataframe(LK_BV.merge(allDates, how="cross"))
     
     BL = BL.merge(BLDates, how="right", on=["IdBundesland", "Meldedatum"])
     LK = LK.merge(LKDates, how="right", on=["IdLandkreis", "Meldedatum"])
@@ -480,14 +452,14 @@ def update_mass(meta):
     allDates = pd.DataFrame()
     BLDates = pd.DataFrame()
     LKDates = pd.DataFrame()
-    BV_mask = pd.DataFrame()
-    BV_masked = pd.DataFrame()
+    LK_BV = pd.DataFrame()
+    BL_BV = pd.DataFrame()
     del ID0
     del allDates
     del BLDates
     del LKDates
-    del BV_mask
-    del BV_masked
+    del BL_BV
+    del LK_BV
     gc.collect()
 
     #fill nan with 0

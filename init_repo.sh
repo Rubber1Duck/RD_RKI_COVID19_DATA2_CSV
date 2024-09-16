@@ -6,18 +6,6 @@ EDATE=$(date -I -d "$2") || exit -1
 
 STIME=$(date +%s.%N)
 
-if [ "$SDATE" == "" ]; then
-  LDATE=$(date '+%Y-%m-%dT%H:%M:%SZ')
-  echo "$LDATE : STARTDATE is empty! exit now"
-  exit 1
-fi
-
-if [ "$EDATE" == "" ]; then
-  LDATE=$(date '+%Y-%m-%dT%H:%M:%SZ')
-  echo "$LDATE : ENDDATE is empty! exit now"
-  exit 1
-fi
-
 # print starting message
 LDATE=$(date '+%Y-%m-%dT%H:%M:%SZ')
 echo "$LDATE : Start INITRUN with dates: $SDATE to $EDATE"
@@ -32,8 +20,7 @@ CDATE="$SDATE"
 while [ "$CDATE" != "$EDATE" ]; do 
   LDATE=$(date '+%Y-%m-%dT%H:%M:%SZ')
   echo "$LDATE : running on $CDATE"
-  SCUR=$(date +%s.%N)
-  
+    
   # Extract JSON data
   #LDATE=$(date '+%Y-%m-%dT%H:%M:%SZ')
   #echo "$LDATE : extract all data"
@@ -63,10 +50,6 @@ while [ "$CDATE" != "$EDATE" ]; do
   #git push --follow-tags
 
   # endmessage for currend date
-  ECUR=$(date +%s.%N)
-  LDATE=$(date '+%Y-%m-%dT%H:%M:%SZ')
-  CSEC=$(echo "$ECUR - $SCUR" | bc | rev | cut -b7- | rev)
-  echo "$LDATE : Update finished. Total $CDATE time: $CSEC secs."
   echo "**************************************************"
   CDATE=$(date -I -d "$CDATE + 1 day")
 done

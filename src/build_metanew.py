@@ -64,7 +64,6 @@ def build_meta_init(datum):
   return new_meta
 
 if __name__ == '__main__':
-  start = dt.datetime.now()
   ghrun = False
   initrun = False
   if len(sys.argv) != 3:
@@ -94,6 +93,6 @@ if __name__ == '__main__':
   with open(meta_path, "w", encoding="utf8") as json_file:
       json.dump(new_meta, json_file, ensure_ascii=False)
   endTime = dt.datetime.now()
-  aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
+  aktuelleZeit = endTime.strftime(format="%Y-%m-%dT%H:%M:%SZ")
   print(f"{aktuelleZeit} : total python time for date: {datum} => {endTime - startTime}")
   
