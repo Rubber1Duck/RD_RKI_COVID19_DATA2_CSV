@@ -18,7 +18,7 @@ echo "$LDATE : Start INITRUN with dates: $SDATE to $EDATE"
 
 CDATE="$SDATE"
 while [ "$CDATE" != "$EDATE" ]; do 
-  LDATE=$(date '+%Y-%m-%dT%H:%M:%SZ')
+  LDATE=$(date '+%Y-%m-%dT%H:%M:%S,%3NZ')
   echo "$LDATE : running on $CDATE"
     
   # Extract JSON data
@@ -60,5 +60,5 @@ done
 LDATE=$(date '+%Y-%m-%dT%H:%M:%SZ')
 ETIME=$(date +%s.%N)
 TSEC=$(echo "$ETIME - $STIME" | bc)
-TTIME=`date -d@$TSEC -u +%H:%M:%S,%N | cut -b1-12`
+TTIME=`date -d@$TSEC -u +%H:%M:%S,%3N | cut -b1-12`
 echo "$LDATE : initrun finished. Last date is $CDATE Total execution time $TTIME."
