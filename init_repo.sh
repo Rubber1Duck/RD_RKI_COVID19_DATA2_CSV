@@ -7,8 +7,8 @@ EDATE=$(date -I -d "$2") || exit -1
 STIME=$(date +%s.%N)
 
 # print starting message
-LDATE=$(date '+%Y-%m-%dT%H:%M:%SZ')
-echo "$LDATE : Start INITRUN with dates: $SDATE to $EDATE"
+#LDATE=$(date '+%Y-%m-%dT%H:%M:%SZ')
+#echo "$LDATE : Start INITRUN with dates: $SDATE to $EDATE"
 
 # download static 7zip
 #LDATE=$(date '+%Y-%m-%dT%H:%M:%SZ')
@@ -18,7 +18,7 @@ echo "$LDATE : Start INITRUN with dates: $SDATE to $EDATE"
 
 CDATE="$SDATE"
 while [ "$CDATE" != "$EDATE" ]; do 
-  LDATE=$(date '+%Y-%m-%dT%H:%M:%SZ')
+  LDATE=$(date '+%Y-%m-%dT%H:%M:%S,%3NZ')
   echo "$LDATE : running on $CDATE"
     
   # Extract JSON data
@@ -27,8 +27,8 @@ while [ "$CDATE" != "$EDATE" ]; do
   #./extract.sh
   
   # Run python  
-  LDATE=$(date '+%Y-%m-%dT%H:%M:%SZ')
-  echo "$LDATE : executing python build_metanew.py $CDATE init"
+  #LDATE=$(date '+%Y-%m-%dT%H:%M:%SZ')
+  #echo "$LDATE : executing python build_metanew.py $CDATE init"
   python ./src/build_metanew.py $CDATE "init"
   
   # compress json files in history
@@ -50,7 +50,7 @@ while [ "$CDATE" != "$EDATE" ]; do
   #git push --follow-tags
 
   # endmessage for currend date
-  echo "**************************************************"
+  #echo "**************************************************"
   CDATE=$(date -I -d "$CDATE + 1 day")
 done
 
@@ -60,5 +60,5 @@ done
 LDATE=$(date '+%Y-%m-%dT%H:%M:%SZ')
 ETIME=$(date +%s.%N)
 TSEC=$(echo "$ETIME - $STIME" | bc)
-TTIME=`date -d@$TSEC -u +%H:%M:%S,%N | cut -b1-12`
+TTIME=`date -d@$TSEC -u +%H:%M:%S,%3N | cut -b1-12`
 echo "$LDATE : initrun finished. Last date is $CDATE Total execution time $TTIME."
