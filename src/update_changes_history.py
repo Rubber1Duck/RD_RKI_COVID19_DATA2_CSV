@@ -45,8 +45,8 @@ def update(meta, BL, LK, mode="auto"):
     LK.rename(columns={"IdLandkreis": "i", "Meldedatum": "m", "cases": "c", "deaths": "d", "recovered": "r", "cases7d": "c7", "incidence7d": "i7"}, inplace=True)
     BL.rename(columns={"IdBundesland": "i", "Meldedatum": "m","cases": "c", "deaths": "d", "recovered": "r", "cases7d": "c7", "incidence7d": "i7"}, inplace=True)
     #convert dates to following numbers since 2020-01-01 to hold the files as short as possible
-    LK["m"] = f'{((pd.to_datetime(LK["m"], format="%Y-%m-%d") - pd.to_datetime("2020-01-01")).dt.days):x}'
-    BL["m"] = f'{((pd.to_datetime(BL["m"], format="%Y-%m-%d") - pd.to_datetime("2020-01-01")).dt.days):x}'
+    LK["m"] = ((pd.to_datetime(LK["m"], format="%Y-%m-%d") - pd.to_datetime("2020-01-01")).dt.days).map('{:x}'.format)
+    BL["m"] = ((pd.to_datetime(BL["m"], format="%Y-%m-%d") - pd.to_datetime("2020-01-01")).dt.days).map('{:x}'.format)
 
     # split LK
     LKcases = LK.copy()
