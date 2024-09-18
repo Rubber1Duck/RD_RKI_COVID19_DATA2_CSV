@@ -27,8 +27,8 @@ while [ "$CDATE" != "$EDATE" ]; do
   #./extract.sh
   
   # Run python  
-  LDATE=$(date '+%Y-%m-%dT%H:%M:%SZ')
-  echo "$LDATE : executing python build_metanew.py $CDATE init"
+  # LDATE=$(date '+%Y-%m-%dT%H:%M:%SZ')
+  # echo "$LDATE : executing python build_metanew.py $CDATE init"
   python ./src/build_metanew.py $CDATE "init"
   
   # compress json files in history
@@ -50,7 +50,7 @@ while [ "$CDATE" != "$EDATE" ]; do
   #git push --follow-tags
 
   # endmessage for currend date
-  echo "**************************************************"
+  #echo "**************************************************"
   CDATE=$(date -I -d "$CDATE + 1 day")
 done
 
