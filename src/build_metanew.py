@@ -79,7 +79,7 @@ if __name__ == '__main__':
       raise ValueError('need exactly 2 arguments! (date, type ghrun or initrun)')
   
   base_path = os.path.dirname(os.path.abspath(__file__))
-  startTime = dt.datetime.now()
+  #startTime = dt.datetime.now()
   if ghrun:
     new_meta = build_meta(datum)
     update(meta=new_meta, BL="", LK="", mode="auto" )
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     os.remove(meta_path)
   with open(meta_path, "w", encoding="utf8") as json_file:
       json.dump(new_meta, json_file, ensure_ascii=False)
-  endTime = dt.datetime.now()
-  aktuelleZeit = endTime.strftime(format="%Y-%m-%dT%H:%M:%SZ")
-  print(f"{aktuelleZeit} : total python time for date: {datum} => {endTime - startTime}")
+  #endTime = dt.datetime.now()
+  #aktuelleZeit = endTime.strftime(format="%Y-%m-%dT%H:%M:%SZ")
+  #print(f"{aktuelleZeit} : total python time for date: {datum} => {endTime - startTime}")
   

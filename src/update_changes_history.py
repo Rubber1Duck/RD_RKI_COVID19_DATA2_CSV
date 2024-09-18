@@ -9,9 +9,9 @@ from multiprocess_pandas import applyparallel
 
 
 def update(meta, BL, LK, mode="auto"):
-    aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
-    print(aktuelleZeit, ": prepare history data. ",end="")
-    t1 = time.time()
+    #aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
+    #print(aktuelleZeit, ": prepare history data. ",end="")
+    #t1 = time.time()
     HC_dtp = {"i": "str", "m": "int64", "c": "int64"}
     HD_dtp = {"i": "str", "m": "int64", "d": "int64"}
     HR_dtp = {"i": "str", "m": "int64", "r": "int64"}
@@ -83,12 +83,12 @@ def update(meta, BL, LK, mode="auto"):
     BL = pd.DataFrame()
     del BL
     gc.collect()
-    t2 = time.time()
-    print(f"Done in {round((t2 - t1), 3)} sec.")
+    #t2 = time.time()
+    #print(f"Done in {round((t2 - t1), 3)} sec.")
     
-    aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
-    print(f"{aktuelleZeit} : Storeing history data. ",end="")
-    t1=time.time()
+    #aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
+    #print(f"{aktuelleZeit} : Storeing history data. ",end="")
+    #t1=time.time()
     # store all files not compressed! will be done later
     historyPath = os.path.normpath(os.path.join(base_path, "..", "dataStore", "history"))
     
@@ -169,13 +169,13 @@ def update(meta, BL, LK, mode="auto"):
         oldBLincidence["m"] = oldBLincidence["m"].astype("int64")
         oldBLincidence["c7"] = oldBLincidence["c7"].astype("int64")
     ut.write_csv(df=BLincidence, filename=BLFile, path=IncidencePath, dtype=HI_dtp)
-    t2 = time.time()
-    print(f"Done in {round((t2 - t1), 3)} sec.")
+    #t2 = time.time()
+    #print(f"Done in {round((t2 - t1), 3)} sec.")
     
     # calculate diff data
-    aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
-    print(f"{aktuelleZeit} : calculating history difference. ",end="")
-    t1 = time.time()
+    #aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
+    #print(f"{aktuelleZeit} : calculating history difference. ",end="")
+    #t1 = time.time()
     changesPath = os.path.normpath(os.path.join(base_path, "..", "dataStore", "historychanges"))
     try:
         LKDiffCases = ut.get_different_rows(oldLKcases, LKcases)
@@ -242,12 +242,12 @@ def update(meta, BL, LK, mode="auto"):
     except:
         BLDiffIncidence = BLincidence.copy()
 
-    t2 = time.time()
-    print(f"Done in {round((t2 - t1), 3)} sec.")
+    #t2 = time.time()
+    #print(f"Done in {round((t2 - t1), 3)} sec.")
     
-    aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
-    print(f"{aktuelleZeit} : storing change history. ",end="")
-    t1 = time.time()
+    #aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
+    #print(f"{aktuelleZeit} : storing change history. ",end="")
+    #t1 = time.time()
     ChangeDateInt = (Datenstand - pd.to_datetime('2020-01-01')).days
     LKDiffCases["cD"] = ChangeDateInt
     LKDiffDeaths["cD"] = ChangeDateInt
@@ -335,8 +335,8 @@ def update(meta, BL, LK, mode="auto"):
     else:
         ut.write_csv(df=BLDiffIncidence, path=DiffIncidencePath, filename=BLDiffFile, dtype=HCI_dtp)
 
-    t2 = time.time()
-    print(f"Done in {round((t2 - t1), 3)} sec.")
+    #t2 = time.time()
+    #print(f"Done in {round((t2 - t1), 3)} sec.")
 
     return
 
@@ -355,11 +355,11 @@ def update_mass(meta):
     BV["GueltigBis"] = pd.to_datetime(BV["GueltigBis"])
 
     # load covid latest from web
-    t1 = time.time()
+    #t1 = time.time()
     Datenstand = dt.datetime.fromtimestamp(meta["modified"] / 1000)
     Datenstand = Datenstand.replace(hour=0, minute=0, second=0, microsecond=0)
-    aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
-    print(f"{aktuelleZeit} : loading {meta['filename']} (size: {meta['filesize']} bytes) to dataframe. ", end="")
+    #aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
+    #print(f"{aktuelleZeit} : loading {meta['filename']} (size: {meta['filesize']} bytes) to dataframe. ", end="")
     
     LK = pd.read_csv(meta["filepath"], engine="pyarrow", usecols=CV_dtypes.keys(), dtype=CV_dtypes)
     
@@ -367,25 +367,25 @@ def update_mass(meta):
     LK = ut.squeeze_dataframe(LK)
 
     
-    t2 = time.time()
-    print(f"Done in {round((t2 - t1), 3)} secs. {LK.shape[0]} rows. {round(LK.shape[0] / (t2 - t1), 1)} rows/sec.")
+    #t2 = time.time()
+    #print(f"Done in {round((t2 - t1), 3)} secs. {LK.shape[0]} rows. {round(LK.shape[0] / (t2 - t1), 1)} rows/sec.")
     
-    aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
-    print(f"{aktuelleZeit} : add missing columns. ", end="")
-    t1 = time.time()
+    #aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
+    #print(f"{aktuelleZeit} : add missing columns. ", end="")
+    #t1 = time.time()
     LK["IdLandkreis"] = LK['IdLandkreis'].map('{:0>5}'.format)
     LK.insert(loc=0, column="IdBundesland", value=LK["IdLandkreis"].str.slice(0,2))
         
     # ----- Squeeze the dataframe to ideal memory size (see "compressing" Medium article and run_dataframe_squeeze.py for background)
     LK = ut.squeeze_dataframe(LK)
     
-    t2 = time.time()
-    print(f"Done in {round((t2 - t1), 3)} secs.")
+    #t2 = time.time()
+    #print(f"Done in {round((t2 - t1), 3)} secs.")
 
     # History
-    aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
-    print(f"{aktuelleZeit} : calculating history data. ", end="")
-    t1 = time.time()
+    #aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
+    #print(f"{aktuelleZeit} : calculating history data. ", end="")
+    #t1 = time.time()
     
     # used keylists
     key_list_LK_hist = ["IdLandkreis", "Meldedatum"]
@@ -472,12 +472,12 @@ def update_mass(meta):
     LK["recovered"] = LK["recovered"].fillna(0).astype(int)
 
     
-    t2 = time.time()
-    print(f"Done in {round((t2 - t1), 3)} secs.")
+    #t2 = time.time()
+    #print(f"Done in {round((t2 - t1), 3)} secs.")
     
-    aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
-    print(f"{aktuelleZeit} : calculating BL incidence. {BL.shape[0]} rows. ",end="")
-    t1 = time.time()
+    #aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
+    #print(f"{aktuelleZeit} : calculating BL incidence. {BL.shape[0]} rows. ",end="")
+    #t1 = time.time()
     BL["Meldedatum"] = BL["Meldedatum"].astype(str)
     BL = BL.groupby(["IdBundesland"], observed=True).apply_parallel(ut.calc_incidence, progressbar=False)
     BL.reset_index(inplace=True, drop=True)
@@ -485,12 +485,12 @@ def update_mass(meta):
     BL.reset_index(inplace=True, drop=True)
     BL["i7"] = (BL["c7"] / BL["Einwohner"] * 100000).round(5)
     BL.drop(["Einwohner"], inplace=True, axis=1)
-    t2 = time.time()
-    print(f"Done in {round(t2 - t1, 3)} sec.")
+    #t2 = time.time()
+    #print(f"Done in {round(t2 - t1, 3)} sec.")
     
-    aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
-    print(f"{aktuelleZeit} : calculating LK incidence. {LK.shape[0]} rows. ",end="")
-    t1 = time.time()
+    #aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
+    #print(f"{aktuelleZeit} : calculating LK incidence. {LK.shape[0]} rows. ",end="")
+    #t1 = time.time()
     LK["Meldedatum"] = LK["Meldedatum"].astype(str)
     LK = LK.groupby(["IdLandkreis"], observed=True).apply_parallel(ut.calc_incidence, progressbar=False)
     LK.reset_index(inplace=True, drop=True)
@@ -498,8 +498,8 @@ def update_mass(meta):
     LK.reset_index(inplace=True, drop=True)
     LK["i7"] = (LK["c7"] / LK["Einwohner"] * 100000).round(5)
     LK.drop(["Einwohner"], inplace=True, axis=1)
-    t2 = time.time()
-    print(f"Done in {round(t2 - t1, 3)} sec.")
+    #t2 = time.time()
+    #print(f"Done in {round(t2 - t1, 3)} sec.")
     
     update(meta=meta, BL=BL, LK=LK, mode="init")
     
