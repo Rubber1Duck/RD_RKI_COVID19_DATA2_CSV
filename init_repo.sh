@@ -27,8 +27,8 @@ while [ "$CDATE" != "$EDATE" ]; do
   #./extract.sh
   
   # Run python  
-  LDATE=$(date '+%Y-%m-%dT%H:%M:%SZ')
-  echo "$LDATE : executing python build_metanew.py $CDATE init"
+  # LDATE=$(date '+%Y-%m-%dT%H:%M:%SZ')
+  # echo "$LDATE : executing python build_metanew.py $CDATE init"
   python ./src/build_metanew.py $CDATE "init"
   
   # compress json files in history
