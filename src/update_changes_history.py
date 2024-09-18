@@ -12,15 +12,15 @@ def update(meta, BL, LK, mode="auto"):
     aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
     print(aktuelleZeit, ": prepare history data. ",end="")
     t1 = time.time()
-    HC_dtp = {"i": "str", "m": "int64", "c": "int64"}
-    HD_dtp = {"i": "str", "m": "int64", "d": "int64"}
-    HR_dtp = {"i": "str", "m": "int64", "r": "int64"}
-    HI_dtp = {"i": "str", "m": "int64", "c7": "int64", "i7": "float"}
+    HC_dtp = {"i": "str", "m": "str", "c": "int64"}
+    HD_dtp = {"i": "str", "m": "str", "d": "int64"}
+    HR_dtp = {"i": "str", "m": "str", "r": "int64"}
+    HI_dtp = {"i": "str", "m": "str", "c7": "int64", "i7": "float"}
 
-    HCC_dtp = {"i": "str", "m": "int64", "c": "int64", "dc": "int64", "cD": "int64"}
-    HCD_dtp = {"i": "str", "m": "int64", "d": "int64", "cD": "int64"}
-    HCR_dtp = {"i": "str", "m": "int64", "r": "int64", "cD": "int64"}
-    HCI_dtp = {"i": "str", "m": "int64", "c7": "int64", "i7": "float", "cD": "int64"}
+    HCC_dtp = {"i": "str", "m": "str", "c": "int64", "dc": "int64", "cD": "str"}
+    HCD_dtp = {"i": "str", "m": "str", "d": "int64", "cD": "str"}
+    HCR_dtp = {"i": "str", "m": "str", "r": "int64", "cD": "str"}
+    HCI_dtp = {"i": "str", "m": "str", "c7": "int64", "i7": "float", "cD": "str"}
     
 
     timeStamp = meta["modified"]
@@ -45,8 +45,8 @@ def update(meta, BL, LK, mode="auto"):
     LK.rename(columns={"IdLandkreis": "i", "Meldedatum": "m", "cases": "c", "deaths": "d", "recovered": "r", "cases7d": "c7", "incidence7d": "i7"}, inplace=True)
     BL.rename(columns={"IdBundesland": "i", "Meldedatum": "m","cases": "c", "deaths": "d", "recovered": "r", "cases7d": "c7", "incidence7d": "i7"}, inplace=True)
     #convert dates to following numbers since 2020-01-01 to hold the files as short as possible
-    LK["m"] = (pd.to_datetime(LK['m'], format='%Y-%m-%d') - pd.to_datetime('2020-01-01')).dt.days
-    BL["m"] = (pd.to_datetime(BL['m'], format='%Y-%m-%d') - pd.to_datetime('2020-01-01')).dt.days
+    LK["m"] = format((pd.to_datetime(LK['m'], format='%Y-%m-%d') - pd.to_datetime('2020-01-01')).dt.days, 'X')
+    BL["m"] = format((pd.to_datetime(BL['m'], format='%Y-%m-%d') - pd.to_datetime('2020-01-01')).dt.days, 'X')
 
     # split LK
     LKcases = LK.copy()
@@ -115,28 +115,28 @@ def update(meta, BL, LK, mode="auto"):
     if os.path.exists(LKcasesFull):
         oldLKcases = ut.read_csv(filename=LKFile, path=CasesPath, dtype=HC_dtp)
         oldLKcases["i"] = oldLKcases['i'].map('{:0>5}'.format)
-        oldLKcases["m"] = oldLKcases['m'].astype("int64")
+        oldLKcases["m"] = oldLKcases['m'].astype("str")
         oldLKcases["c"] = oldLKcases["c"].astype("int64")
     ut.write_csv(df=LKcases, filename=LKFile, path=CasesPath, dtype=HC_dtp)
     
     if os.path.exists(LKdeathsFull):
         oldLKdeaths = ut.read_csv(filename=LKFile, path=DeathsPath, dtype=HD_dtp)
         oldLKdeaths["i"] = oldLKdeaths['i'].map('{:0>5}'.format)
-        oldLKdeaths['m'] = oldLKdeaths['m'].astype("int64")
+        oldLKdeaths['m'] = oldLKdeaths['m'].astype("str")
         oldLKdeaths["d"] = oldLKdeaths["d"].astype("int64")
     ut.write_csv(df=LKdeaths, filename=LKFile, path=DeathsPath, dtype=HD_dtp)
         
     if os.path.exists(LKrecoveredFull):
         oldLKrecovered = ut.read_csv(filename=LKFile, path=RecoveredPath, dtype=HR_dtp)
         oldLKrecovered["i"] = oldLKrecovered['i'].map('{:0>5}'.format)
-        oldLKrecovered['m'] = oldLKrecovered['m'].astype("int64")
+        oldLKrecovered['m'] = oldLKrecovered['m'].astype("str")
         oldLKrecovered["r"] = oldLKrecovered["r"].astype("int64")
     ut.write_csv(df=LKrecovered, filename=LKFile, path=RecoveredPath, dtype=HR_dtp)
         
     if os.path.exists(LKincidenceFull):
         oldLKincidence = ut.read_csv(filename=LKFile, path=IncidencePath, dtype=HI_dtp)
         oldLKincidence["i"] = oldLKincidence['i'].map('{:0>5}'.format)
-        oldLKincidence['m'] = oldLKincidence['m'].astype("int64")
+        oldLKincidence['m'] = oldLKincidence['m'].astype("str")
         oldLKincidence["c7"] = oldLKincidence["c7"].astype("int64")
     ut.write_csv(df=LKincidence, filename=LKFile, path=IncidencePath, dtype=HI_dtp)
         
@@ -145,28 +145,28 @@ def update(meta, BL, LK, mode="auto"):
     if os.path.exists(BLcasesFull):
         oldBLcases = ut.read_csv(filename=BLFile, path=CasesPath, dtype=HC_dtp)
         oldBLcases["i"] = oldBLcases['i'].map('{:0>2}'.format)
-        oldBLcases['m'] = oldBLcases['m'].astype("int64")
+        oldBLcases['m'] = oldBLcases['m'].astype("str")
         oldBLcases["c"] = oldBLcases["c"].astype("int64")
     ut.write_csv(df=BLcases, filename= BLFile, path=CasesPath, dtype=HC_dtp)
        
     if os.path.exists(BLdeathsFull):
         oldBLdeaths = ut.read_csv(filename=BLFile, path=DeathsPath, dtype=HD_dtp)
         oldBLdeaths["i"] = oldBLdeaths['i'].map('{:0>2}'.format)
-        oldBLdeaths["m"] = oldBLdeaths["m"].astype("int64")
+        oldBLdeaths["m"] = oldBLdeaths["m"].astype("str")
         oldBLdeaths["d"] = oldBLdeaths["d"].astype("int64")
     ut.write_csv(df=BLdeaths, filename=BLFile, path=DeathsPath, dtype=HD_dtp)
        
     if os.path.exists(BLrecoveredFull):
         oldBLrecovered = ut.read_csv(filename=BLFile, path=RecoveredPath, dtype=HR_dtp)
         oldBLrecovered["i"] = oldBLrecovered['i'].map('{:0>2}'.format)
-        oldBLrecovered["m"] = oldBLrecovered["m"].astype("int64")
+        oldBLrecovered["m"] = oldBLrecovered["m"].astype("str")
         oldBLrecovered["r"] = oldBLrecovered["r"].astype("int64")
     ut.write_csv(df=BLrecovered, filename=BLFile, path=RecoveredPath, dtype=HR_dtp)
     
     if os.path.exists(BLincidenceFull):
         oldBLincidence = ut.read_csv(filename=BLFile, path=IncidencePath, dtype=HI_dtp)
         oldBLincidence["i"] = oldBLincidence['i'].map('{:0>2}'.format)
-        oldBLincidence["m"] = oldBLincidence["m"].astype("int64")
+        oldBLincidence["m"] = oldBLincidence["m"].astype("str")
         oldBLincidence["c7"] = oldBLincidence["c7"].astype("int64")
     ut.write_csv(df=BLincidence, filename=BLFile, path=IncidencePath, dtype=HI_dtp)
     t2 = time.time()
@@ -248,16 +248,16 @@ def update(meta, BL, LK, mode="auto"):
     aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
     print(f"{aktuelleZeit} : storing change history. ",end="")
     t1 = time.time()
-    ChangeDateInt = (Datenstand - pd.to_datetime('2020-01-01')).days
-    LKDiffCases["cD"] = ChangeDateInt
-    LKDiffDeaths["cD"] = ChangeDateInt
-    LKDiffRecovered["cD"] = ChangeDateInt
-    LKDiffIncidence["cD"] = ChangeDateInt
+    ChangeDateHexStr = format((Datenstand - pd.to_datetime('2020-01-01')).days, "X")
+    LKDiffCases["cD"] = ChangeDateHexStr
+    LKDiffDeaths["cD"] = ChangeDateHexStr
+    LKDiffRecovered["cD"] = ChangeDateHexStr
+    LKDiffIncidence["cD"] = ChangeDateHexStr
     
-    BLDiffCases["cD"] = ChangeDateInt
-    BLDiffDeaths["cD"] = ChangeDateInt
-    BLDiffRecovered["cD"] = ChangeDateInt
-    BLDiffIncidence["cD"] = ChangeDateInt
+    BLDiffCases["cD"] = ChangeDateHexStr
+    BLDiffDeaths["cD"] = ChangeDateHexStr
+    BLDiffRecovered["cD"] = ChangeDateHexStr
+    BLDiffIncidence["cD"] = ChangeDateHexStr
     
     LKDiffFile = "districts_Diff.csv"
     BLDiffFile = "states_Diff.csv"
