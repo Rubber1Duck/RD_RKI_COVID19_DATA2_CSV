@@ -45,8 +45,8 @@ def update(meta, BL, LK, mode="auto"):
     LK.rename(columns={"IdLandkreis": "i", "Meldedatum": "m", "cases": "c", "deaths": "d", "recovered": "r", "cases7d": "c7", "incidence7d": "i7"}, inplace=True)
     BL.rename(columns={"IdBundesland": "i", "Meldedatum": "m","cases": "c", "deaths": "d", "recovered": "r", "cases7d": "c7", "incidence7d": "i7"}, inplace=True)
     #convert dates to following numbers since 2020-01-01 to hold the files as short as possible
-    LK["m"] = ((pd.to_datetime(LK["m"], format="%Y-%m-%d") - pd.to_datetime("2020-01-01")).dt.days).__format__("x")
-    BL["m"] = ((pd.to_datetime(BL["m"], format="%Y-%m-%d") - pd.to_datetime("2020-01-01")).dt.days).__format__("x")
+    LK["m"] = f'{((pd.to_datetime(LK["m"], format="%Y-%m-%d") - pd.to_datetime("2020-01-01")).dt.days):x}'
+    BL["m"] = f'{((pd.to_datetime(BL["m"], format="%Y-%m-%d") - pd.to_datetime("2020-01-01")).dt.days):x}'
 
     # split LK
     LKcases = LK.copy()
@@ -248,7 +248,7 @@ def update(meta, BL, LK, mode="auto"):
     aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
     print(f"{aktuelleZeit} : storing change history. ",end="")
     t1 = time.time()
-    ChangeDateHexStr = ((Datenstand - pd.to_datetime("2020-01-01")).days).__format__("x")
+    ChangeDateHexStr = f'{((Datenstand - pd.to_datetime("2020-01-01")).days):x}'
     LKDiffCases["cD"] = ChangeDateHexStr
     LKDiffDeaths["cD"] = ChangeDateHexStr
     LKDiffRecovered["cD"] = ChangeDateHexStr
