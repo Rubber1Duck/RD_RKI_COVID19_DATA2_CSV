@@ -373,8 +373,8 @@ def update_mass(meta):
     #aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
     #print(f"{aktuelleZeit} : add missing columns. ", end="")
     #t1 = time.time()
-    LK["IdLandkreis"] = LK['IdLandkreis'].map('{:0>5}'.format)
-    LK.insert(loc=0, column="IdBundesland", value=LK["IdLandkreis"].str.slice(0,2))
+    #LK["IdLandkreis"] = LK['IdLandkreis'].map('{:0>5}'.format)
+    #LK.insert(loc=0, column="IdBundesland", value=LK["IdLandkreis"].str.slice(0,2))
         
     # ----- Squeeze the dataframe to ideal memory size (see "compressing" Medium article and run_dataframe_squeeze.py for background)
     LK = ut.squeeze_dataframe(LK)
@@ -403,6 +403,11 @@ def update_mass(meta):
         if c not in key_list_LK_hist
     }
     LK = LK.groupby(by=key_list_LK_hist, as_index=False, observed=True).agg(agg_key)
+    
+    LK["IdLandkreis"] = LK['IdLandkreis'].map('{:0>5}'.format)
+    LK.insert(loc=0, column="IdBundesland", value=LK["IdLandkreis"].str.slice(0,2))
+    LK = ut.squeeze_dataframe(LK)
+    
     agg_key = {
         c: "max" if c in ["IdLandkreis"] else "sum"
         for c in LK.columns
