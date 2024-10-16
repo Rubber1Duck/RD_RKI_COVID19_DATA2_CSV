@@ -1,6 +1,6 @@
 import os, json, sys, requests
 import datetime as dt
-import pandas as pd
+import time as time
 from update_changes_history import update, update_mass
 
 def build_meta(datum):
@@ -86,8 +86,9 @@ if __name__ == '__main__':
   eDatObj = dt.datetime.strptime(enddatum, "%Y-%m-%d")
   delta = dt.timedelta(days=1)
   while sDatObj <= eDatObj:
+    t1 = time.time() 
     aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%S,%fZ")
-    print(f"{aktuelleZeit} : running on {dt.datetime.strftime(sDatObj, '%Y-%m-%d')}")
+    print(f"{aktuelleZeit} : running on {dt.datetime.strftime(sDatObj, '%Y-%m-%d')}", end="")
     if ghrun:
       new_meta = build_meta(dt.datetime.strftime(sDatObj, format="%Y-%m-%d"))
       update(meta=new_meta, BL="", LK="", mode="auto" )
@@ -101,6 +102,8 @@ if __name__ == '__main__':
       os.remove(meta_path)
     with open(meta_path, "w", encoding="utf8") as json_file:
       json.dump(new_meta, json_file, ensure_ascii=False)
+    t2 = time.time()
+    print(f" {t2 - t1} sec.") 
   endTime = dt.datetime.now()
   aktuelleZeit = endTime.strftime(format="%Y-%m-%dT%H:%M:%S,%fZ")
   print(f"{aktuelleZeit} : total python time : {endTime - startTime}")

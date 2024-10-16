@@ -12,17 +12,12 @@ def update(meta, BL, LK, mode="auto"):
     #aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
     #print(aktuelleZeit, ": prepare history data. ",end="")
     #t1 = time.time()
-    HC_dtp = {"i": "str", "m": "int64", "c": "int64"}
-    HD_dtp = {"i": "str", "m": "int64", "d": "int64"}
-    HR_dtp = {"i": "str", "m": "int64", "r": "int64"}
-    HI_dtp = {"i": "str", "m": "int64", "c7": "int64", "i7": "float"}
-
+    
     HCC_dtp = {"i": "str", "m": "int64", "c": "int64", "dc": "int64", "cD": "int64"}
     HCD_dtp = {"i": "str", "m": "int64", "d": "int64", "cD": "int64"}
     HCR_dtp = {"i": "str", "m": "int64", "r": "int64", "cD": "int64"}
     HCI_dtp = {"i": "str", "m": "int64", "c7": "int64", "i7": "float", "cD": "int64"}
     
-
     timeStamp = meta["modified"]
     Datenstand = dt.datetime.fromtimestamp(timeStamp / 1000)
     Datenstand = Datenstand.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -92,8 +87,8 @@ def update(meta, BL, LK, mode="auto"):
     # store all files not compressed! will be done later
     historyPath = os.path.normpath(os.path.join(base_path, "..", "dataStore", "history"))
     
-    LKFile = "districts.csv"
-    BLFile = "states.csv"
+    LKFile = "districts.feather"
+    BLFile = "states.feather"
     
     CasesPath = os.path.join(historyPath, "cases")
     DeathsPath = os.path.join(historyPath, "deaths")
@@ -113,62 +108,38 @@ def update(meta, BL, LK, mode="auto"):
     # read oldLK(cases, deaths, recovered, incidence) if old file exist
     # write new data 
     if os.path.exists(LKcasesFull):
-        oldLKcases = ut.read_csv(filename=LKFile, path=CasesPath, dtype=HC_dtp)
-        oldLKcases["i"] = oldLKcases['i'].map('{:0>5}'.format)
-        oldLKcases["m"] = oldLKcases['m'].astype("int64")
-        oldLKcases["c"] = oldLKcases["c"].astype("int64")
-    ut.write_csv(df=LKcases, filename=LKFile, path=CasesPath, dtype=HC_dtp)
+        oldLKcases = ut.read_file(fn=LKcasesFull)
+    ut.write_file(df=LKcases, fn=LKcasesFull, compression="lz4")
     
     if os.path.exists(LKdeathsFull):
-        oldLKdeaths = ut.read_csv(filename=LKFile, path=DeathsPath, dtype=HD_dtp)
-        oldLKdeaths["i"] = oldLKdeaths['i'].map('{:0>5}'.format)
-        oldLKdeaths['m'] = oldLKdeaths['m'].astype("int64")
-        oldLKdeaths["d"] = oldLKdeaths["d"].astype("int64")
-    ut.write_csv(df=LKdeaths, filename=LKFile, path=DeathsPath, dtype=HD_dtp)
+        oldLKdeaths = ut.read_file(fn=LKdeathsFull)
+    ut.write_file(df=LKdeaths, fn=LKdeathsFull, compression="lz4")
         
     if os.path.exists(LKrecoveredFull):
-        oldLKrecovered = ut.read_csv(filename=LKFile, path=RecoveredPath, dtype=HR_dtp)
-        oldLKrecovered["i"] = oldLKrecovered['i'].map('{:0>5}'.format)
-        oldLKrecovered['m'] = oldLKrecovered['m'].astype("int64")
-        oldLKrecovered["r"] = oldLKrecovered["r"].astype("int64")
-    ut.write_csv(df=LKrecovered, filename=LKFile, path=RecoveredPath, dtype=HR_dtp)
+        oldLKrecovered = ut.read_file(fn=LKrecoveredFull)
+    ut.write_file(df=LKrecovered, fn=LKrecoveredFull, compression="lz4")
         
     if os.path.exists(LKincidenceFull):
-        oldLKincidence = ut.read_csv(filename=LKFile, path=IncidencePath, dtype=HI_dtp)
-        oldLKincidence["i"] = oldLKincidence['i'].map('{:0>5}'.format)
-        oldLKincidence['m'] = oldLKincidence['m'].astype("int64")
-        oldLKincidence["c7"] = oldLKincidence["c7"].astype("int64")
-    ut.write_csv(df=LKincidence, filename=LKFile, path=IncidencePath, dtype=HI_dtp)
+        oldLKincidence = ut.read_file(fn=LKincidenceFull)
+    ut.write_file(df=LKincidence, fn=LKincidenceFull, compression="lz4")
         
     # read oldBL(cases, deaths, recovered, incidence) if old file exist
     # write new data
     if os.path.exists(BLcasesFull):
-        oldBLcases = ut.read_csv(filename=BLFile, path=CasesPath, dtype=HC_dtp)
-        oldBLcases["i"] = oldBLcases['i'].map('{:0>2}'.format)
-        oldBLcases['m'] = oldBLcases['m'].astype("int64")
-        oldBLcases["c"] = oldBLcases["c"].astype("int64")
-    ut.write_csv(df=BLcases, filename= BLFile, path=CasesPath, dtype=HC_dtp)
+        oldBLcases = ut.read_file(fn=BLcasesFull)
+    ut.write_file(df=BLcases, fn= BLcasesFull, compression="lz4")
        
     if os.path.exists(BLdeathsFull):
-        oldBLdeaths = ut.read_csv(filename=BLFile, path=DeathsPath, dtype=HD_dtp)
-        oldBLdeaths["i"] = oldBLdeaths['i'].map('{:0>2}'.format)
-        oldBLdeaths["m"] = oldBLdeaths["m"].astype("int64")
-        oldBLdeaths["d"] = oldBLdeaths["d"].astype("int64")
-    ut.write_csv(df=BLdeaths, filename=BLFile, path=DeathsPath, dtype=HD_dtp)
+        oldBLdeaths = ut.read_file(fn=BLdeathsFull)
+    ut.write_file(df=BLdeaths, fn=BLdeathsFull, compression="lz4")
        
     if os.path.exists(BLrecoveredFull):
-        oldBLrecovered = ut.read_csv(filename=BLFile, path=RecoveredPath, dtype=HR_dtp)
-        oldBLrecovered["i"] = oldBLrecovered['i'].map('{:0>2}'.format)
-        oldBLrecovered["m"] = oldBLrecovered["m"].astype("int64")
-        oldBLrecovered["r"] = oldBLrecovered["r"].astype("int64")
-    ut.write_csv(df=BLrecovered, filename=BLFile, path=RecoveredPath, dtype=HR_dtp)
+        oldBLrecovered = ut.read_file(fn=BLrecoveredFull)
+    ut.write_file(df=BLrecovered, fn=BLrecoveredFull, compression="lz4")
     
     if os.path.exists(BLincidenceFull):
-        oldBLincidence = ut.read_csv(filename=BLFile, path=IncidencePath, dtype=HI_dtp)
-        oldBLincidence["i"] = oldBLincidence['i'].map('{:0>2}'.format)
-        oldBLincidence["m"] = oldBLincidence["m"].astype("int64")
-        oldBLincidence["c7"] = oldBLincidence["c7"].astype("int64")
-    ut.write_csv(df=BLincidence, filename=BLFile, path=IncidencePath, dtype=HI_dtp)
+        oldBLincidence = ut.read_file(fn=BLincidenceFull)
+    ut.write_file(df=BLincidence, fn=BLincidenceFull, compression="lz4")
     #t2 = time.time()
     #print(f"Done in {round((t2 - t1), 3)} sec.")
     
