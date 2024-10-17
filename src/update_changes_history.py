@@ -4,25 +4,16 @@ import time as time
 import pandas as pd
 import numpy as np
 import utils as ut
-import gc
 from multiprocess_pandas import applyparallel
 
 
 def update(meta, BL, LK, mode="auto"):
-    aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
-    print(aktuelleZeit, ": prepare history data. ",end="")
-    t1 = time.time()
-    HC_dtp = {"i": "str", "m": "int64", "c": "int64"}
-    HD_dtp = {"i": "str", "m": "int64", "d": "int64"}
-    HR_dtp = {"i": "str", "m": "int64", "r": "int64"}
-    HI_dtp = {"i": "str", "m": "int64", "c7": "int64", "i7": "float"}
-
+        
     HCC_dtp = {"i": "str", "m": "int64", "c": "int64", "dc": "int64", "cD": "int64"}
     HCD_dtp = {"i": "str", "m": "int64", "d": "int64", "cD": "int64"}
     HCR_dtp = {"i": "str", "m": "int64", "r": "int64", "cD": "int64"}
     HCI_dtp = {"i": "str", "m": "int64", "c7": "int64", "i7": "float", "cD": "int64"}
     
-
     timeStamp = meta["modified"]
     Datenstand = dt.datetime.fromtimestamp(timeStamp / 1000)
     Datenstand = Datenstand.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -44,6 +35,7 @@ def update(meta, BL, LK, mode="auto"):
 
     LK.rename(columns={"IdLandkreis": "i", "Meldedatum": "m", "cases": "c", "deaths": "d", "recovered": "r", "cases7d": "c7", "incidence7d": "i7"}, inplace=True)
     BL.rename(columns={"IdBundesland": "i", "Meldedatum": "m","cases": "c", "deaths": "d", "recovered": "r", "cases7d": "c7", "incidence7d": "i7"}, inplace=True)
+    
     #convert dates to following numbers since 2020-01-01 to hold the files as short as possible
     LK["m"] = (pd.to_datetime(LK['m'], format='%Y-%m-%d') - pd.to_datetime('2020-01-01')).dt.days
     BL["m"] = (pd.to_datetime(BL['m'], format='%Y-%m-%d') - pd.to_datetime('2020-01-01')).dt.days
@@ -61,11 +53,7 @@ def update(meta, BL, LK, mode="auto"):
     LKincidence = LK.copy()
     LKincidence.drop(["c", "d", "r"], inplace=True, axis=1)
     LKincidence["c7"] = LKincidence["c7"].astype("int64")
-    # free memory
-    LK = pd.DataFrame()
-    del LK
-    gc.collect()
-
+    
     # split BL
     BLcases = BL.copy()
     BLcases.drop(["d", "r", "c7", "i7"], inplace=True, axis=1)
@@ -79,103 +67,59 @@ def update(meta, BL, LK, mode="auto"):
     BLincidence = BL.copy()
     BLincidence.drop(["c", "d", "r"], inplace=True, axis=1)
     BLincidence["c7"] = BLincidence["c7"].astype("int64")
-    # free memory
-    BL = pd.DataFrame()
-    del BL
-    gc.collect()
-    t2 = time.time()
-    print(f"Done in {round((t2 - t1), 3)} sec.")
     
-    aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
-    print(f"{aktuelleZeit} : Storeing history data. ",end="")
-    t1=time.time()
-    # store all files not compressed! will be done later
     historyPath = os.path.normpath(os.path.join(base_path, "..", "dataStore", "history"))
     
-    LKFile = "districts.csv"
-    BLFile = "states.csv"
+    LKFile = "districts.feather"
+    BLFile = "states.feather"
     
-    CasesPath = os.path.join(historyPath, "cases")
-    DeathsPath = os.path.join(historyPath, "deaths")
-    RecoveredPath = os.path.join(historyPath, "recovered")
-    IncidencePath = os.path.join(historyPath, "incidence")
+    LKcasesFull = os.path.join(historyPath, "cases", LKFile)
+    LKdeathsFull = os.path.join(historyPath, "deaths", LKFile)
+    LKrecoveredFull = os.path.join(historyPath, "recovered", LKFile)
+    LKincidenceFull = os.path.join(historyPath, "incidence", LKFile)
     
-    LKcasesFull = os.path.join(CasesPath, LKFile)
-    LKdeathsFull = os.path.join(DeathsPath, LKFile)
-    LKrecoveredFull = os.path.join(RecoveredPath, LKFile)
-    LKincidenceFull = os.path.join(IncidencePath, LKFile)
-    
-    BLcasesFull = os.path.join(CasesPath, BLFile)
-    BLdeathsFull = os.path.join(DeathsPath, BLFile)
-    BLrecoveredFull = os.path.join(RecoveredPath, BLFile)
-    BLincidenceFull = os.path.join(IncidencePath, BLFile)
+    BLcasesFull = os.path.join(historyPath, "cases", BLFile)
+    BLdeathsFull = os.path.join(historyPath, "deaths", BLFile)
+    BLrecoveredFull = os.path.join(historyPath, "recovered", BLFile)
+    BLincidenceFull = os.path.join(historyPath, "incidence", BLFile)
 
     # read oldLK(cases, deaths, recovered, incidence) if old file exist
     # write new data 
     if os.path.exists(LKcasesFull):
-        oldLKcases = ut.read_csv(filename=LKFile, path=CasesPath, dtype=HC_dtp)
-        oldLKcases["i"] = oldLKcases['i'].map('{:0>5}'.format)
-        oldLKcases["m"] = oldLKcases['m'].astype("int64")
-        oldLKcases["c"] = oldLKcases["c"].astype("int64")
-    ut.write_csv(df=LKcases, filename=LKFile, path=CasesPath, dtype=HC_dtp)
+        oldLKcases = ut.read_file(fn=LKcasesFull)
+    ut.write_file(df=LKcases, fn=LKcasesFull, compression="lz4")
     
     if os.path.exists(LKdeathsFull):
-        oldLKdeaths = ut.read_csv(filename=LKFile, path=DeathsPath, dtype=HD_dtp)
-        oldLKdeaths["i"] = oldLKdeaths['i'].map('{:0>5}'.format)
-        oldLKdeaths['m'] = oldLKdeaths['m'].astype("int64")
-        oldLKdeaths["d"] = oldLKdeaths["d"].astype("int64")
-    ut.write_csv(df=LKdeaths, filename=LKFile, path=DeathsPath, dtype=HD_dtp)
+        oldLKdeaths = ut.read_file(fn=LKdeathsFull)
+    ut.write_file(df=LKdeaths, fn=LKdeathsFull, compression="lz4")
         
     if os.path.exists(LKrecoveredFull):
-        oldLKrecovered = ut.read_csv(filename=LKFile, path=RecoveredPath, dtype=HR_dtp)
-        oldLKrecovered["i"] = oldLKrecovered['i'].map('{:0>5}'.format)
-        oldLKrecovered['m'] = oldLKrecovered['m'].astype("int64")
-        oldLKrecovered["r"] = oldLKrecovered["r"].astype("int64")
-    ut.write_csv(df=LKrecovered, filename=LKFile, path=RecoveredPath, dtype=HR_dtp)
+        oldLKrecovered = ut.read_file(fn=LKrecoveredFull)
+    ut.write_file(df=LKrecovered, fn=LKrecoveredFull, compression="lz4")
         
     if os.path.exists(LKincidenceFull):
-        oldLKincidence = ut.read_csv(filename=LKFile, path=IncidencePath, dtype=HI_dtp)
-        oldLKincidence["i"] = oldLKincidence['i'].map('{:0>5}'.format)
-        oldLKincidence['m'] = oldLKincidence['m'].astype("int64")
-        oldLKincidence["c7"] = oldLKincidence["c7"].astype("int64")
-    ut.write_csv(df=LKincidence, filename=LKFile, path=IncidencePath, dtype=HI_dtp)
+        oldLKincidence = ut.read_file(fn=LKincidenceFull)
+    ut.write_file(df=LKincidence, fn=LKincidenceFull, compression="lz4")
         
     # read oldBL(cases, deaths, recovered, incidence) if old file exist
     # write new data
     if os.path.exists(BLcasesFull):
-        oldBLcases = ut.read_csv(filename=BLFile, path=CasesPath, dtype=HC_dtp)
-        oldBLcases["i"] = oldBLcases['i'].map('{:0>2}'.format)
-        oldBLcases['m'] = oldBLcases['m'].astype("int64")
-        oldBLcases["c"] = oldBLcases["c"].astype("int64")
-    ut.write_csv(df=BLcases, filename= BLFile, path=CasesPath, dtype=HC_dtp)
+        oldBLcases = ut.read_file(fn=BLcasesFull)
+    ut.write_file(df=BLcases, fn= BLcasesFull, compression="lz4")
        
     if os.path.exists(BLdeathsFull):
-        oldBLdeaths = ut.read_csv(filename=BLFile, path=DeathsPath, dtype=HD_dtp)
-        oldBLdeaths["i"] = oldBLdeaths['i'].map('{:0>2}'.format)
-        oldBLdeaths["m"] = oldBLdeaths["m"].astype("int64")
-        oldBLdeaths["d"] = oldBLdeaths["d"].astype("int64")
-    ut.write_csv(df=BLdeaths, filename=BLFile, path=DeathsPath, dtype=HD_dtp)
+        oldBLdeaths = ut.read_file(fn=BLdeathsFull)
+    ut.write_file(df=BLdeaths, fn=BLdeathsFull, compression="lz4")
        
     if os.path.exists(BLrecoveredFull):
-        oldBLrecovered = ut.read_csv(filename=BLFile, path=RecoveredPath, dtype=HR_dtp)
-        oldBLrecovered["i"] = oldBLrecovered['i'].map('{:0>2}'.format)
-        oldBLrecovered["m"] = oldBLrecovered["m"].astype("int64")
-        oldBLrecovered["r"] = oldBLrecovered["r"].astype("int64")
-    ut.write_csv(df=BLrecovered, filename=BLFile, path=RecoveredPath, dtype=HR_dtp)
+        oldBLrecovered = ut.read_file(fn=BLrecoveredFull)
+    ut.write_file(df=BLrecovered, fn=BLrecoveredFull, compression="lz4")
     
     if os.path.exists(BLincidenceFull):
-        oldBLincidence = ut.read_csv(filename=BLFile, path=IncidencePath, dtype=HI_dtp)
-        oldBLincidence["i"] = oldBLincidence['i'].map('{:0>2}'.format)
-        oldBLincidence["m"] = oldBLincidence["m"].astype("int64")
-        oldBLincidence["c7"] = oldBLincidence["c7"].astype("int64")
-    ut.write_csv(df=BLincidence, filename=BLFile, path=IncidencePath, dtype=HI_dtp)
-    t2 = time.time()
-    print(f"Done in {round((t2 - t1), 3)} sec.")
-    
+        oldBLincidence = ut.read_file(fn=BLincidenceFull)
+    ut.write_file(df=BLincidence, fn=BLincidenceFull, compression="lz4")
+        
     # calculate diff data
-    aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
-    print(f"{aktuelleZeit} : calculating history difference. ",end="")
-    t1 = time.time()
     changesPath = os.path.normpath(os.path.join(base_path, "..", "dataStore", "historychanges"))
     try:
         LKDiffCases = ut.get_different_rows(oldLKcases, LKcases)
@@ -242,12 +186,6 @@ def update(meta, BL, LK, mode="auto"):
     except:
         BLDiffIncidence = BLincidence.copy()
 
-    t2 = time.time()
-    print(f"Done in {round((t2 - t1), 3)} sec.")
-    
-    aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
-    print(f"{aktuelleZeit} : storing change history. ",end="")
-    t1 = time.time()
     ChangeDateInt = (Datenstand - pd.to_datetime('2020-01-01')).days
     LKDiffCases["cD"] = ChangeDateInt
     LKDiffDeaths["cD"] = ChangeDateInt
@@ -335,9 +273,6 @@ def update(meta, BL, LK, mode="auto"):
     else:
         ut.write_csv(df=BLDiffIncidence, path=DiffIncidencePath, filename=BLDiffFile, dtype=HCI_dtp)
 
-    t2 = time.time()
-    print(f"Done in {round((t2 - t1), 3)} sec.")
-
     return
 
 def update_mass(meta):
@@ -355,38 +290,15 @@ def update_mass(meta):
     BV["GueltigBis"] = pd.to_datetime(BV["GueltigBis"])
 
     # load covid latest from web
-    t1 = time.time()
     Datenstand = dt.datetime.fromtimestamp(meta["modified"] / 1000)
     Datenstand = Datenstand.replace(hour=0, minute=0, second=0, microsecond=0)
-    aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
-    print(f"{aktuelleZeit} : loading {meta['filename']} (size: {meta['filesize']} bytes) to dataframe. ", end="")
-    
     LK = pd.read_csv(meta["filepath"], engine="pyarrow", usecols=CV_dtypes.keys(), dtype=CV_dtypes)
     
     # ----- Squeeze the dataframe to ideal memory size (see "compressing" Medium article and run_dataframe_squeeze.py for background)
     LK = ut.squeeze_dataframe(LK)
 
-    
-    t2 = time.time()
-    print(f"Done in {round((t2 - t1), 3)} secs. {LK.shape[0]} rows. {round(LK.shape[0] / (t2 - t1), 1)} rows/sec.")
-    
-    aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
-    print(f"{aktuelleZeit} : add missing columns. ", end="")
-    t1 = time.time()
-    LK["IdLandkreis"] = LK['IdLandkreis'].map('{:0>5}'.format)
-    LK.insert(loc=0, column="IdBundesland", value=LK["IdLandkreis"].str.slice(0,2))
-        
-    # ----- Squeeze the dataframe to ideal memory size (see "compressing" Medium article and run_dataframe_squeeze.py for background)
-    LK = ut.squeeze_dataframe(LK)
-    
-    t2 = time.time()
-    print(f"Done in {round((t2 - t1), 3)} secs.")
-
     # History
-    aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
-    print(f"{aktuelleZeit} : calculating history data. ", end="")
-    t1 = time.time()
-    
+      
     # used keylists
     key_list_LK_hist = ["IdLandkreis", "Meldedatum"]
     key_list_BL_hist = ["IdBundesland", "Meldedatum"]
@@ -403,6 +315,11 @@ def update_mass(meta):
         if c not in key_list_LK_hist
     }
     LK = LK.groupby(by=key_list_LK_hist, as_index=False, observed=True).agg(agg_key)
+    
+    LK["IdLandkreis"] = LK['IdLandkreis'].map('{:0>5}'.format)
+    LK.insert(loc=0, column="IdBundesland", value=LK["IdLandkreis"].str.slice(0,2))
+    LK = ut.squeeze_dataframe(LK)
+    
     agg_key = {
         c: "max" if c in ["IdLandkreis"] else "sum"
         for c in LK.columns
@@ -447,21 +364,6 @@ def update_mass(meta):
     LK = LK[LK["Landkreis"].notna()]
     LK.drop(["Landkreis"], inplace=True, axis=1)
 
-    # clear unneeded data
-    ID0 = pd.DataFrame()
-    allDates = pd.DataFrame()
-    BLDates = pd.DataFrame()
-    LKDates = pd.DataFrame()
-    LK_BV = pd.DataFrame()
-    BL_BV = pd.DataFrame()
-    del ID0
-    del allDates
-    del BLDates
-    del LKDates
-    del BL_BV
-    del LK_BV
-    gc.collect()
-
     #fill nan with 0
     BL["cases"] = BL["cases"].fillna(0).astype(int)
     BL["deaths"] = BL["deaths"].fillna(0).astype(int)
@@ -471,13 +373,6 @@ def update_mass(meta):
     LK["deaths"] = LK["deaths"].fillna(0).astype(int)
     LK["recovered"] = LK["recovered"].fillna(0).astype(int)
 
-    
-    t2 = time.time()
-    print(f"Done in {round((t2 - t1), 3)} secs.")
-    
-    aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
-    print(f"{aktuelleZeit} : calculating BL incidence. {BL.shape[0]} rows. ",end="")
-    t1 = time.time()
     BL["Meldedatum"] = BL["Meldedatum"].astype(str)
     BL = BL.groupby(["IdBundesland"], observed=True).apply_parallel(ut.calc_incidence, progressbar=False)
     BL.reset_index(inplace=True, drop=True)
@@ -485,12 +380,7 @@ def update_mass(meta):
     BL.reset_index(inplace=True, drop=True)
     BL["i7"] = (BL["c7"] / BL["Einwohner"] * 100000).round(5)
     BL.drop(["Einwohner"], inplace=True, axis=1)
-    t2 = time.time()
-    print(f"Done in {round(t2 - t1, 3)} sec.")
     
-    aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%SZ")
-    print(f"{aktuelleZeit} : calculating LK incidence. {LK.shape[0]} rows. ",end="")
-    t1 = time.time()
     LK["Meldedatum"] = LK["Meldedatum"].astype(str)
     LK = LK.groupby(["IdLandkreis"], observed=True).apply_parallel(ut.calc_incidence, progressbar=False)
     LK.reset_index(inplace=True, drop=True)
@@ -498,9 +388,7 @@ def update_mass(meta):
     LK.reset_index(inplace=True, drop=True)
     LK["i7"] = (LK["c7"] / LK["Einwohner"] * 100000).round(5)
     LK.drop(["Einwohner"], inplace=True, axis=1)
-    t2 = time.time()
-    print(f"Done in {round(t2 - t1, 3)} sec.")
-    
+        
     update(meta=meta, BL=BL, LK=LK, mode="init")
     
     return
