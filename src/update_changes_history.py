@@ -4,7 +4,6 @@ import time as time
 import pandas as pd
 import numpy as np
 import utils as ut
-import gc
 from multiprocess_pandas import applyparallel
 
 
@@ -57,9 +56,9 @@ def update(meta, BL, LK, mode="auto"):
     LKincidence.drop(["c", "d", "r"], inplace=True, axis=1)
     LKincidence["c7"] = LKincidence["c7"].astype("int64")
     # free memory
-    LK = pd.DataFrame()
-    del LK
-    gc.collect()
+    #LK = pd.DataFrame()
+    #del LK
+    #gc.collect()
 
     # split BL
     BLcases = BL.copy()
@@ -75,9 +74,9 @@ def update(meta, BL, LK, mode="auto"):
     BLincidence.drop(["c", "d", "r"], inplace=True, axis=1)
     BLincidence["c7"] = BLincidence["c7"].astype("int64")
     # free memory
-    BL = pd.DataFrame()
-    del BL
-    gc.collect()
+    #BL = pd.DataFrame()
+    #del BL
+    #gc.collect()
     #t2 = time.time()
     #print(f"Done in {round((t2 - t1), 3)} sec.")
     
@@ -90,20 +89,15 @@ def update(meta, BL, LK, mode="auto"):
     LKFile = "districts.feather"
     BLFile = "states.feather"
     
-    CasesPath = os.path.join(historyPath, "cases")
-    DeathsPath = os.path.join(historyPath, "deaths")
-    RecoveredPath = os.path.join(historyPath, "recovered")
-    IncidencePath = os.path.join(historyPath, "incidence")
+    LKcasesFull = os.path.join(historyPath, "cases", LKFile)
+    LKdeathsFull = os.path.join(historyPath, "deaths", LKFile)
+    LKrecoveredFull = os.path.join(historyPath, "recovered", LKFile)
+    LKincidenceFull = os.path.join(historyPath, "incidence", LKFile)
     
-    LKcasesFull = os.path.join(CasesPath, LKFile)
-    LKdeathsFull = os.path.join(DeathsPath, LKFile)
-    LKrecoveredFull = os.path.join(RecoveredPath, LKFile)
-    LKincidenceFull = os.path.join(IncidencePath, LKFile)
-    
-    BLcasesFull = os.path.join(CasesPath, BLFile)
-    BLdeathsFull = os.path.join(DeathsPath, BLFile)
-    BLrecoveredFull = os.path.join(RecoveredPath, BLFile)
-    BLincidenceFull = os.path.join(IncidencePath, BLFile)
+    BLcasesFull = os.path.join(historyPath, "cases", BLFile)
+    BLdeathsFull = os.path.join(historyPath, "deaths", BLFile)
+    BLrecoveredFull = os.path.join(historyPath, "recovered", BLFile)
+    BLincidenceFull = os.path.join(historyPath, "incidence", BLFile)
 
     # read oldLK(cases, deaths, recovered, incidence) if old file exist
     # write new data 
@@ -348,7 +342,7 @@ def update_mass(meta):
     #LK.insert(loc=0, column="IdBundesland", value=LK["IdLandkreis"].str.slice(0,2))
         
     # ----- Squeeze the dataframe to ideal memory size (see "compressing" Medium article and run_dataframe_squeeze.py for background)
-    LK = ut.squeeze_dataframe(LK)
+    #LK = ut.squeeze_dataframe(LK)
     
     #t2 = time.time()
     #print(f"Done in {round((t2 - t1), 3)} secs.")
@@ -424,19 +418,19 @@ def update_mass(meta):
     LK.drop(["Landkreis"], inplace=True, axis=1)
 
     # clear unneeded data
-    ID0 = pd.DataFrame()
-    allDates = pd.DataFrame()
-    BLDates = pd.DataFrame()
-    LKDates = pd.DataFrame()
-    LK_BV = pd.DataFrame()
-    BL_BV = pd.DataFrame()
-    del ID0
-    del allDates
-    del BLDates
-    del LKDates
-    del BL_BV
-    del LK_BV
-    gc.collect()
+    #ID0 = pd.DataFrame()
+    #allDates = pd.DataFrame()
+    #BLDates = pd.DataFrame()
+    #LKDates = pd.DataFrame()
+    #LK_BV = pd.DataFrame()
+    #BL_BV = pd.DataFrame()
+    #del ID0
+    #del allDates
+    #del BLDates
+    #del LKDates
+    #del BL_BV
+    #del LK_BV
+    #gc.collect()
 
     #fill nan with 0
     BL["cases"] = BL["cases"].fillna(0).astype(int)
