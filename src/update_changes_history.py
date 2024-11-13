@@ -8,7 +8,7 @@ from multiprocess_pandas import applyparallel
 
 
 def update(meta, BL, LK, mode="auto"):
-        
+    t1 = time.time()    
     HCC_dtp = {"i": "str", "m": "int64", "c": "int64", "dc": "int64", "cD": "int64"}
     HCD_dtp = {"i": "str", "m": "int64", "d": "int64", "cD": "int64"}
     HCR_dtp = {"i": "str", "m": "int64", "r": "int64", "cD": "int64"}
@@ -272,10 +272,12 @@ def update(meta, BL, LK, mode="auto"):
         ut.write_csv(df=BLDiffIncidence, path=DiffIncidencePath, filename=BLDiffFile, dtype=HCI_dtp, mode='a')
     else:
         ut.write_csv(df=BLDiffIncidence, path=DiffIncidencePath, filename=BLDiffFile, dtype=HCI_dtp)
-
+    t2 = time.time()
+    print(f'update = {t2 - t1} secs.')
     return
 
 def update_mass(meta):
+    t1 = time.time()
     base_path = os.path.dirname(os.path.abspath(__file__))
     
     BV_csv_path = os.path.join(base_path, "..", "Bevoelkerung", "Bevoelkerung.csv")
@@ -388,7 +390,8 @@ def update_mass(meta):
     LK.reset_index(inplace=True, drop=True)
     LK["i7"] = (LK["c7"] / LK["Einwohner"] * 100000).round(5)
     LK.drop(["Einwohner"], inplace=True, axis=1)
-        
+    t2 = time.time()
+    print(f'update_mass = {t2 - t1} secs.')    
     update(meta=meta, BL=BL, LK=LK, mode="init")
     
     return

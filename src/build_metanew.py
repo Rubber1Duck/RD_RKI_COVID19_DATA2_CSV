@@ -87,8 +87,7 @@ if __name__ == '__main__':
   delta = dt.timedelta(days=1)
   while sDatObj <= eDatObj:
     t1 = time.time() 
-    aktuelleZeit = dt.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%S,%fZ")
-    print(f"{aktuelleZeit} : running on {dt.datetime.strftime(sDatObj, '%Y-%m-%d')}", end="")
+    print(f"running on {dt.datetime.strftime(sDatObj, '%Y-%m-%d')}")
     if ghrun:
       new_meta = build_meta(dt.datetime.strftime(sDatObj, format="%Y-%m-%d"))
       update(meta=new_meta, BL="", LK="", mode="auto" )
@@ -103,8 +102,7 @@ if __name__ == '__main__':
     with open(meta_path, "w", encoding="utf8") as json_file:
       json.dump(new_meta, json_file, ensure_ascii=False)
     t2 = time.time()
-    print(f" {t2 - t1} sec.") 
+    print(f"total {dt.datetime.strftime(sDatObj, '%Y-%m-%d')} = {t2 - t1} sec.") 
   endTime = dt.datetime.now()
-  aktuelleZeit = endTime.strftime(format="%Y-%m-%dT%H:%M:%S,%fZ")
-  print(f"{aktuelleZeit} : total python time : {endTime - startTime}")
+  print(f"total python time : {endTime - startTime}")
   
