@@ -295,12 +295,13 @@ def update_mass(meta):
     Datenstand = dt.datetime.fromtimestamp(meta["modified"] / 1000)
     Datenstand = Datenstand.replace(hour=0, minute=0, second=0, microsecond=0)
     LK = pd.read_csv(meta["filepath"], engine="pyarrow", usecols=CV_dtypes.keys(), dtype=CV_dtypes)
-    
+        
     # ----- Squeeze the dataframe to ideal memory size (see "compressing" Medium article and run_dataframe_squeeze.py for background)
     LK = ut.squeeze_dataframe(LK)
-
+    t11 = time.time()
+    print(f'read BV and DATA and squeeze= {t11 - t1} secs.')
     # History
-      
+    t11 = time.time()  
     # used keylists
     key_list_LK_hist = ["IdLandkreis", "Meldedatum"]
     key_list_BL_hist = ["IdBundesland", "Meldedatum"]
@@ -321,22 +322,28 @@ def update_mass(meta):
     LK["IdLandkreis"] = LK['IdLandkreis'].map('{:0>5}'.format)
     LK.insert(loc=0, column="IdBundesland", value=LK["IdLandkreis"].str.slice(0,2))
     LK = ut.squeeze_dataframe(LK)
-    
+    t12 = time.time()
+    print(f'group LK and squeeze = {t12 - t11} secs.')
+    t11 = time.time()
     agg_key = {
         c: "max" if c in ["IdLandkreis"] else "sum"
         for c in LK.columns
         if c not in key_list_BL_hist
     }
     BL = LK.groupby(by=key_list_BL_hist, as_index=False, observed=True).agg(agg_key)
+    LK.drop(["IdBundesland"], inplace=True, axis=1)
+    LK.sort_values(by=key_list_LK_hist, inplace=True)
+    LK.reset_index(inplace=True, drop=True)
+    t12 = time.time()
+    print(f'group BL = {t12 - t11} secs.')
+    
+    t11 = time.time()
     agg_key = {
         c: "max" if c in ["IdBundesland", "IdLandkreis"] else "sum"
         for c in BL.columns
         if c not in key_list_ID0_hist
     }
     ID0 = BL.groupby(by=key_list_ID0_hist, as_index=False, observed=True).agg(agg_key)
-    LK.drop(["IdBundesland"], inplace=True, axis=1)
-    LK.sort_values(by=key_list_LK_hist, inplace=True)
-    LK.reset_index(inplace=True, drop=True)
     BL.drop(["IdLandkreis"], inplace=True, axis=1)
     ID0.drop(["IdLandkreis"], inplace=True, axis=1)
     ID0["IdBundesland"] = "00"
@@ -346,8 +353,11 @@ def update_mass(meta):
 
     BL["Meldedatum"] = BL["Meldedatum"].astype(str)
     LK["Meldedatum"] = LK["Meldedatum"].astype(str)
+    t12 = time.time()
+    print(f'group ID= and concat with BL fix Meldedatum = {t12 - t11} secs.')
     
     # fill dates for every region
+    t11 = time.time()
     allDates = ut.squeeze_dataframe(pd.DataFrame(pd.date_range(end=(Datenstand - dt.timedelta(days=1)), start="2020-01-01").astype(str), columns=["Meldedatum"]))
     # add Einwohner
     BL_BV = BV[((BV["AGS"].isin(BL["IdBundesland"])) & (BV["GueltigAb"] <= Datenstand) & (BV["GueltigBis"] >= Datenstand) & (BV["Altersgruppe"] == "A00+") & (BV["AGS"].str.len() == 2))].copy()
@@ -374,7 +384,10 @@ def update_mass(meta):
     LK["cases"] = LK["cases"].fillna(0).astype(int)
     LK["deaths"] = LK["deaths"].fillna(0).astype(int)
     LK["recovered"] = LK["recovered"].fillna(0).astype(int)
+    t12 = time.time()
+    print(f'add all dates and prepare 0 data = {t12 - t11} secs.')
 
+    t11 = time.time()
     BL["Meldedatum"] = BL["Meldedatum"].astype(str)
     BL = BL.groupby(["IdBundesland"], observed=True).apply_parallel(ut.calc_incidence, progressbar=False)
     BL.reset_index(inplace=True, drop=True)
@@ -382,7 +395,10 @@ def update_mass(meta):
     BL.reset_index(inplace=True, drop=True)
     BL["i7"] = (BL["c7"] / BL["Einwohner"] * 100000).round(5)
     BL.drop(["Einwohner"], inplace=True, axis=1)
+    t12 = time.time()
+    print(f'calc incidence for LK = {t12 - t11} secs.')
     
+    t11 = time.time()
     LK["Meldedatum"] = LK["Meldedatum"].astype(str)
     LK = LK.groupby(["IdLandkreis"], observed=True).apply_parallel(ut.calc_incidence, progressbar=False)
     LK.reset_index(inplace=True, drop=True)
@@ -391,6 +407,7 @@ def update_mass(meta):
     LK["i7"] = (LK["c7"] / LK["Einwohner"] * 100000).round(5)
     LK.drop(["Einwohner"], inplace=True, axis=1)
     t2 = time.time()
+    print(f'calc incidence for BL = {t2 - t11} secs.')
     print(f'update_mass = {t2 - t1} secs.')    
     update(meta=meta, BL=BL, LK=LK, mode="init")
     
