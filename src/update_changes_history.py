@@ -396,7 +396,7 @@ def update_mass(meta):
     BL["i7"] = (BL["c7"] / BL["Einwohner"] * 100000).round(5)
     BL.drop(["Einwohner"], inplace=True, axis=1)
     t12 = time.time()
-    print(f'calc incidence for LK = {t12 - t11} secs.')
+    print(f'calc incidence for BL ({BL.shape[0]} rows) = {t12 - t11} secs.')
     
     t11 = time.time()
     LK["Meldedatum"] = LK["Meldedatum"].astype(str)
@@ -407,7 +407,7 @@ def update_mass(meta):
     LK["i7"] = (LK["c7"] / LK["Einwohner"] * 100000).round(5)
     LK.drop(["Einwohner"], inplace=True, axis=1)
     t2 = time.time()
-    print(f'calc incidence for BL = {t2 - t11} secs.')
+    print(f'calc incidence for LK ({LK.shape[0]} rows) = {t2 - t11} secs.')
     print(f'update_mass = {t2 - t1} secs.')    
     update(meta=meta, BL=BL, LK=LK, mode="init")
     
