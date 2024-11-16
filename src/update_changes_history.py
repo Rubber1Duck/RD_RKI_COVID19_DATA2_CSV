@@ -22,6 +22,8 @@ def update(meta, BL, LK, mode="auto"):
     if mode !="init":    
         BL = ut.read_file(meta["BL_url"])
         LK = ut.read_file(meta["LK_url"])
+        LK.rename(columns={"IdLandkreis": "i", "Meldedatum": "m", "cases": "c", "deaths": "d", "recovered": "r", "cases7d": "c7", "incidence7d": "i7"}, inplace=True)
+        BL.rename(columns={"IdBundesland": "i", "Meldedatum": "m","cases": "c", "deaths": "d", "recovered": "r", "cases7d": "c7", "incidence7d": "i7"}, inplace=True)
     
     # for smaler files rename fields
     # i = Id(Landkreis or Bundesland)
@@ -33,39 +35,29 @@ def update(meta, BL, LK, mode="auto"):
     # c7 = cases7d (cases7days)
     # i7 = incidence7d (incidence7days)
 
-    LK.rename(columns={"IdLandkreis": "i", "Meldedatum": "m", "cases": "c", "deaths": "d", "recovered": "r", "cases7d": "c7", "incidence7d": "i7"}, inplace=True)
-    BL.rename(columns={"IdBundesland": "i", "Meldedatum": "m","cases": "c", "deaths": "d", "recovered": "r", "cases7d": "c7", "incidence7d": "i7"}, inplace=True)
-    
     #convert dates to following numbers since 2020-01-01 to hold the files as short as possible
     LK["m"] = (pd.to_datetime(LK['m'], format='%Y-%m-%d') - pd.to_datetime('2020-01-01')).dt.days
     BL["m"] = (pd.to_datetime(BL['m'], format='%Y-%m-%d') - pd.to_datetime('2020-01-01')).dt.days
 
+    # df2 = df1[['A', 'C']].copy()
     # split LK
-    LKcases = LK.copy()
-    LKcases.drop(["d", "r", "c7", "i7"], inplace=True, axis=1)
+    LKcases = LK[["i", "m", "c"]].copy()
     LKcases["c"] = LKcases["c"].astype("int64")
-    LKdeaths = LK.copy()
-    LKdeaths.drop(["c", "r", "c7", "i7"], inplace=True, axis=1)
+    LKdeaths = LK[["i", "m", "d"]].copy()
     LKdeaths["d"] = LKdeaths["d"].astype("int64")
-    LKrecovered = LK.copy()
-    LKrecovered.drop(["c", "d", "c7", "i7"], inplace=True, axis=1)
+    LKrecovered = LK[["i", "m", "r"]].copy()
     LKrecovered["r"] = LKrecovered["r"].astype("int64")
-    LKincidence = LK.copy()
-    LKincidence.drop(["c", "d", "r"], inplace=True, axis=1)
+    LKincidence = LK[["i", "m", "c7", "i7"]].copy()
     LKincidence["c7"] = LKincidence["c7"].astype("int64")
     
     # split BL
-    BLcases = BL.copy()
-    BLcases.drop(["d", "r", "c7", "i7"], inplace=True, axis=1)
+    BLcases = BL[["i", "m", "c"]].copy()
     BLcases["c"] = BLcases["c"].astype("int64")
-    BLdeaths = BL.copy()
-    BLdeaths.drop(["c", "r", "c7", "i7"], inplace=True, axis=1)
+    BLdeaths = BL[["i", "m", "d"]].copy()
     BLdeaths["d"] = BLdeaths["d"].astype("int64")
-    BLrecovered = BL.copy()
-    BLrecovered.drop(["c", "d", "c7", "i7"], inplace=True, axis=1)
+    BLrecovered = BL[["i", "m", "r"]].copy()
     BLrecovered["r"] = BLrecovered["r"].astype("int64")
-    BLincidence = BL.copy()
-    BLincidence.drop(["c", "d", "r"], inplace=True, axis=1)
+    BLincidence = BL[["i", "m", "c7", "i7"]].copy()
     BLincidence["c7"] = BLincidence["c7"].astype("int64")
     
     historyPath = os.path.normpath(os.path.join(base_path, "..", "dataStore", "history"))
@@ -303,95 +295,98 @@ def update_mass(meta):
     # History
     t11 = time.time()  
     # used keylists
-    key_list_LK_hist = ["IdLandkreis", "Meldedatum"]
-    key_list_BL_hist = ["IdBundesland", "Meldedatum"]
-    key_list_ID0_hist = ["Meldedatum"]
+    key_list_LK = ["i", "m"]
+    key_list_BL = ["i", "m"]
+    key_list_ID0 = ["m"]
 
     LK["AnzahlFall"] = np.where(LK["NeuerFall"].isin([1, 0]), LK["AnzahlFall"], 0).astype(int)
     LK["AnzahlTodesfall"] = np.where(LK["NeuerTodesfall"].isin([1, 0, -9]), LK["AnzahlTodesfall"], 0).astype(int)
     LK["AnzahlGenesen"] = np.where(LK["NeuGenesen"].isin([1, 0, -9]), LK["AnzahlGenesen"], 0).astype(int)
     LK.drop(["NeuerFall", "NeuerTodesfall", "NeuGenesen"], inplace=True, axis=1)
-    LK.rename(columns={"AnzahlFall": "cases", "AnzahlTodesfall": "deaths", "AnzahlGenesen": "recovered"}, inplace=True)
+    LK.rename(columns={"IdLandkreis": "i", "Meldedatum": "m", "AnzahlFall": "c", "AnzahlTodesfall": "d", "AnzahlGenesen": "r"}, inplace=True)
     agg_key = {
         c: "max" if c in ["IdBundesland"] else "sum"
         for c in LK.columns
-        if c not in key_list_LK_hist
+        if c not in key_list_LK
     }
-    LK = LK.groupby(by=key_list_LK_hist, as_index=False, observed=True).agg(agg_key)
+    LK = LK.groupby(by=key_list_LK, as_index=False, observed=True).agg(agg_key)
     
-    LK["IdLandkreis"] = LK['IdLandkreis'].map('{:0>5}'.format)
-    LK.insert(loc=0, column="IdBundesland", value=LK["IdLandkreis"].str.slice(0,2))
+    LK["i"] = LK['i'].map('{:0>5}'.format)
     LK = ut.squeeze_dataframe(LK)
+    LK.sort_values(by=key_list_LK, inplace=True)
+    LK.reset_index(inplace=True, drop=True)
     t12 = time.time()
     print(f'group LK and squeeze = {t12 - t11} secs.')
     t11 = time.time()
+    
+    BL = LK.copy()
+    BL["i"] = BL["i"].str.slice(0,2)
+    BL = ut.squeeze_dataframe(BL)
     agg_key = {
         c: "max" if c in ["IdLandkreis"] else "sum"
-        for c in LK.columns
-        if c not in key_list_BL_hist
+        for c in BL.columns
+        if c not in key_list_BL
     }
-    BL = LK.groupby(by=key_list_BL_hist, as_index=False, observed=True).agg(agg_key)
-    LK.drop(["IdBundesland"], inplace=True, axis=1)
-    LK.sort_values(by=key_list_LK_hist, inplace=True)
-    LK.reset_index(inplace=True, drop=True)
+    BL = BL.groupby(by=key_list_BL, as_index=False, observed=True).agg(agg_key)
+    BL = ut.squeeze_dataframe(BL)
+    BL.sort_values(by=key_list_BL, inplace=True)
+    BL.reset_index(inplace=True, drop=True)
     t12 = time.time()
     print(f'group BL = {t12 - t11} secs.')
-    
     t11 = time.time()
+    
     agg_key = {
-        c: "max" if c in ["IdBundesland", "IdLandkreis"] else "sum"
+        c: "max" if c in ["i"] else "sum"
         for c in BL.columns
-        if c not in key_list_ID0_hist
+        if c not in key_list_ID0
     }
-    ID0 = BL.groupby(by=key_list_ID0_hist, as_index=False, observed=True).agg(agg_key)
-    BL.drop(["IdLandkreis"], inplace=True, axis=1)
-    ID0.drop(["IdLandkreis"], inplace=True, axis=1)
-    ID0["IdBundesland"] = "00"
+    ID0 = BL.groupby(by=key_list_ID0, as_index=False, observed=True).agg(agg_key)
+    ID0["i"] = "00"
     BL = pd.concat([ID0, BL])
-    BL.sort_values(by=key_list_BL_hist, inplace=True)
+    BL.sort_values(by=key_list_BL, inplace=True)
     BL.reset_index(inplace=True, drop=True)
 
-    BL["Meldedatum"] = BL["Meldedatum"].astype(str)
-    LK["Meldedatum"] = LK["Meldedatum"].astype(str)
+    BL["m"] = BL["m"].astype(str)
+    LK["m"] = LK["m"].astype(str)
     t12 = time.time()
     print(f'group ID= and concat with BL fix Meldedatum = {t12 - t11} secs.')
     
     # fill dates for every region
     t11 = time.time()
-    allDates = ut.squeeze_dataframe(pd.DataFrame(pd.date_range(end=(Datenstand - dt.timedelta(days=1)), start="2020-01-01").astype(str), columns=["Meldedatum"]))
+    allDates = ut.squeeze_dataframe(pd.DataFrame(pd.date_range(end=(Datenstand - dt.timedelta(days=1)), start="2020-01-01").astype(str), columns=["m"]))
     # add Einwohner
-    BL_BV = BV[((BV["AGS"].isin(BL["IdBundesland"])) & (BV["GueltigAb"] <= Datenstand) & (BV["GueltigBis"] >= Datenstand) & (BV["Altersgruppe"] == "A00+") & (BV["AGS"].str.len() == 2))].copy()
+    BL_BV = BV[((BV["AGS"].isin(BL["i"])) & (BV["GueltigAb"] <= Datenstand) & (BV["GueltigBis"] >= Datenstand) & (BV["Altersgruppe"] == "A00+") & (BV["AGS"].str.len() == 2))].copy()
     BL_BV.drop(["GueltigAb", "GueltigBis", "Altersgruppe", "männlich", "weiblich", "Name"], inplace=True, axis=1)
-    BL_BV.rename(columns={"AGS": "IdBundesland"}, inplace=True)
+    BL_BV.rename(columns={"AGS": "i"}, inplace=True)
 
-    LK_BV = BV[((BV["AGS"].isin(LK["IdLandkreis"])) & (BV["GueltigAb"] <= Datenstand) & (BV["GueltigBis"] >= Datenstand) & (BV["Altersgruppe"] == "A00+") & (BV["AGS"].str.len() == 5))].copy()
+    LK_BV = BV[((BV["AGS"].isin(LK["i"])) & (BV["GueltigAb"] <= Datenstand) & (BV["GueltigBis"] >= Datenstand) & (BV["Altersgruppe"] == "A00+") & (BV["AGS"].str.len() == 5))].copy()
     LK_BV.drop(["GueltigAb", "GueltigBis", "Altersgruppe", "männlich", "weiblich"], inplace=True, axis=1)
-    LK_BV.rename(columns={"AGS": "IdLandkreis", "Name": "Landkreis"}, inplace=True)
+    LK_BV.rename(columns={"AGS": "i", "Name": "Landkreis"}, inplace=True)
 
     BLDates = ut.squeeze_dataframe(BL_BV.merge(allDates, how="cross"))
     LKDates = ut.squeeze_dataframe(LK_BV.merge(allDates, how="cross"))
     
-    BL = BL.merge(BLDates, how="right", on=["IdBundesland", "Meldedatum"])
-    LK = LK.merge(LKDates, how="right", on=["IdLandkreis", "Meldedatum"])
+    BL = BL.merge(BLDates, how="right", on=["i", "m"])
+    LK = LK.merge(LKDates, how="right", on=["i", "m"])
     LK = LK[LK["Landkreis"].notna()]
     LK.drop(["Landkreis"], inplace=True, axis=1)
 
     #fill nan with 0
-    BL["cases"] = BL["cases"].fillna(0).astype(int)
-    BL["deaths"] = BL["deaths"].fillna(0).astype(int)
-    BL["recovered"] = BL["recovered"].fillna(0).astype(int)
+    BL["c"] = BL["c"].fillna(0).astype(int)
+    BL["d"] = BL["d"].fillna(0).astype(int)
+    BL["r"] = BL["r"].fillna(0).astype(int)
 
-    LK["cases"] = LK["cases"].fillna(0).astype(int)
-    LK["deaths"] = LK["deaths"].fillna(0).astype(int)
-    LK["recovered"] = LK["recovered"].fillna(0).astype(int)
+    LK["c"] = LK["c"].fillna(0).astype(int)
+    LK["d"] = LK["d"].fillna(0).astype(int)
+    LK["r"] = LK["r"].fillna(0).astype(int)
     t12 = time.time()
     print(f'add all dates and prepare 0 data = {t12 - t11} secs.')
 
     t11 = time.time()
-    BL["Meldedatum"] = BL["Meldedatum"].astype(str)
-    BL = BL.groupby(["IdBundesland"], observed=True).apply_parallel(ut.calc_incidence, progressbar=False)
+    BL["m"] = BL["m"].astype(str)
+    BL = BL.groupby(["i"], observed=True).apply_parallel(ut.calc_incidence, progressbar=False)
     BL.reset_index(inplace=True, drop=True)
-    BL.sort_values(["IdBundesland", "Meldedatum"], inplace=True, axis=0)
+    BL.sort_values(["i", "m"], inplace=True, axis=0)
     BL.reset_index(inplace=True, drop=True)
     BL["i7"] = (BL["c7"] / BL["Einwohner"] * 100000).round(5)
     BL.drop(["Einwohner"], inplace=True, axis=1)
@@ -399,10 +394,10 @@ def update_mass(meta):
     print(f'calc incidence for BL ({BL.shape[0]} rows) = {t12 - t11} secs.')
     
     t11 = time.time()
-    LK["Meldedatum"] = LK["Meldedatum"].astype(str)
-    LK = LK.groupby(["IdLandkreis"], observed=True).apply_parallel(ut.calc_incidence, progressbar=False)
+    LK["m"] = LK["m"].astype(str)
+    LK = LK.groupby(["i"], observed=True).apply_parallel(ut.calc_incidence, progressbar=False)
     LK.reset_index(inplace=True, drop=True)
-    LK.sort_values(["IdLandkreis", "Meldedatum"], inplace=True, axis=0)
+    LK.sort_values(["i", "m"], inplace=True, axis=0)
     LK.reset_index(inplace=True, drop=True)
     LK["i7"] = (LK["c7"] / LK["Einwohner"] * 100000).round(5)
     LK.drop(["Einwohner"], inplace=True, axis=1)
