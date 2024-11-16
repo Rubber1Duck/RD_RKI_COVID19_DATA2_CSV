@@ -8,7 +8,7 @@ from multiprocess_pandas import applyparallel
 
 
 def update(meta, BL, LK, mode="auto"):
-    t1 = time.time()    
+        
     HCC_dtp = {"i": "str", "m": "int64", "c": "int64", "dc": "int64", "cD": "int64"}
     HCD_dtp = {"i": "str", "m": "int64", "d": "int64", "cD": "int64"}
     HCR_dtp = {"i": "str", "m": "int64", "r": "int64", "cD": "int64"}
@@ -264,12 +264,11 @@ def update(meta, BL, LK, mode="auto"):
         ut.write_csv(df=BLDiffIncidence, path=DiffIncidencePath, filename=BLDiffFile, dtype=HCI_dtp, mode='a')
     else:
         ut.write_csv(df=BLDiffIncidence, path=DiffIncidencePath, filename=BLDiffFile, dtype=HCI_dtp)
-    t2 = time.time()
-    print(f'update = {t2 - t1} secs.')
+    
     return
 
 def update_mass(meta):
-    t1 = time.time()
+    
     base_path = os.path.dirname(os.path.abspath(__file__))
     
     BV_csv_path = os.path.join(base_path, "..", "Bevoelkerung", "Bevoelkerung.csv")
@@ -290,10 +289,8 @@ def update_mass(meta):
         
     # ----- Squeeze the dataframe to ideal memory size (see "compressing" Medium article and run_dataframe_squeeze.py for background)
     LK = ut.squeeze_dataframe(LK)
-    t11 = time.time()
-    print(f'read BV and DATA and squeeze= {t11 - t1} secs.')
+    
     # History
-    t11 = time.time()  
     # used keylists
     key_list_LK = ["i", "m"]
     key_list_BL = ["i", "m"]
@@ -315,10 +312,7 @@ def update_mass(meta):
     LK = ut.squeeze_dataframe(LK)
     LK.sort_values(by=key_list_LK, inplace=True)
     LK.reset_index(inplace=True, drop=True)
-    t12 = time.time()
-    print(f'group LK and squeeze = {t12 - t11} secs.')
-    t11 = time.time()
-    
+        
     BL = LK.copy()
     BL["i"] = BL["i"].str.slice(0,2)
     BL = ut.squeeze_dataframe(BL)
@@ -331,10 +325,7 @@ def update_mass(meta):
     BL = ut.squeeze_dataframe(BL)
     BL.sort_values(by=key_list_BL, inplace=True)
     BL.reset_index(inplace=True, drop=True)
-    t12 = time.time()
-    print(f'group BL = {t12 - t11} secs.')
-    t11 = time.time()
-    
+      
     agg_key = {
         c: "max" if c in ["i"] else "sum"
         for c in BL.columns
@@ -348,11 +339,8 @@ def update_mass(meta):
 
     BL["m"] = BL["m"].astype(str)
     LK["m"] = LK["m"].astype(str)
-    t12 = time.time()
-    print(f'group ID= and concat with BL fix Meldedatum = {t12 - t11} secs.')
-    
+        
     # fill dates for every region
-    t11 = time.time()
     allDates = ut.squeeze_dataframe(pd.DataFrame(pd.date_range(end=(Datenstand - dt.timedelta(days=1)), start="2020-01-01").astype(str), columns=["m"]))
     # add Einwohner
     BL_BV = BV[((BV["AGS"].isin(BL["i"])) & (BV["GueltigAb"] <= Datenstand) & (BV["GueltigBis"] >= Datenstand) & (BV["Altersgruppe"] == "A00+") & (BV["AGS"].str.len() == 2))].copy()
@@ -379,10 +367,7 @@ def update_mass(meta):
     LK["c"] = LK["c"].fillna(0).astype(int)
     LK["d"] = LK["d"].fillna(0).astype(int)
     LK["r"] = LK["r"].fillna(0).astype(int)
-    t12 = time.time()
-    print(f'add all dates and prepare 0 data = {t12 - t11} secs.')
-
-    t11 = time.time()
+    
     BL["m"] = BL["m"].astype(str)
     BL = BL.groupby(["i"], observed=True).apply_parallel(ut.calc_incidence, progressbar=False)
     BL.reset_index(inplace=True, drop=True)
@@ -390,10 +375,7 @@ def update_mass(meta):
     BL.reset_index(inplace=True, drop=True)
     BL["i7"] = (BL["c7"] / BL["Einwohner"] * 100000).round(5)
     BL.drop(["Einwohner"], inplace=True, axis=1)
-    t12 = time.time()
-    print(f'calc incidence for BL ({BL.shape[0]} rows) = {t12 - t11} secs.')
-    
-    t11 = time.time()
+        
     LK["m"] = LK["m"].astype(str)
     LK = LK.groupby(["i"], observed=True).apply_parallel(ut.calc_incidence, progressbar=False)
     LK.reset_index(inplace=True, drop=True)
@@ -401,9 +383,7 @@ def update_mass(meta):
     LK.reset_index(inplace=True, drop=True)
     LK["i7"] = (LK["c7"] / LK["Einwohner"] * 100000).round(5)
     LK.drop(["Einwohner"], inplace=True, axis=1)
-    t2 = time.time()
-    print(f'calc incidence for LK ({LK.shape[0]} rows) = {t2 - t11} secs.')
-    print(f'update_mass = {t2 - t1} secs.')    
+    
     update(meta=meta, BL=BL, LK=LK, mode="init")
     
     return
