@@ -79,61 +79,36 @@ def update(meta, BL, LK, mode="auto"):
     # write new data 
     if os.path.exists(LKcasesFull):
         oldLKcases = ut.read_file(fn=LKcasesFull)
-    ut.write_file(df=LKcases, fn=LKcasesFull, compression="lz4")
-    
-    if os.path.exists(LKdeathsFull):
-        oldLKdeaths = ut.read_file(fn=LKdeathsFull)
-    ut.write_file(df=LKdeaths, fn=LKdeathsFull, compression="lz4")
-        
-    if os.path.exists(LKrecoveredFull):
-        oldLKrecovered = ut.read_file(fn=LKrecoveredFull)
-    ut.write_file(df=LKrecovered, fn=LKrecoveredFull, compression="lz4")
-        
-    if os.path.exists(LKincidenceFull):
-        oldLKincidence = ut.read_file(fn=LKincidenceFull)
-    ut.write_file(df=LKincidence, fn=LKincidenceFull, compression="lz4")
-        
-    # read oldBL(cases, deaths, recovered, incidence) if old file exist
-    # write new data
-    if os.path.exists(BLcasesFull):
-        oldBLcases = ut.read_file(fn=BLcasesFull)
-    ut.write_file(df=BLcases, fn= BLcasesFull, compression="lz4")
-       
-    if os.path.exists(BLdeathsFull):
-        oldBLdeaths = ut.read_file(fn=BLdeathsFull)
-    ut.write_file(df=BLdeaths, fn=BLdeathsFull, compression="lz4")
-       
-    if os.path.exists(BLrecoveredFull):
-        oldBLrecovered = ut.read_file(fn=BLrecoveredFull)
-    ut.write_file(df=BLrecovered, fn=BLrecoveredFull, compression="lz4")
-    
-    if os.path.exists(BLincidenceFull):
-        oldBLincidence = ut.read_file(fn=BLincidenceFull)
-    ut.write_file(df=BLincidence, fn=BLincidenceFull, compression="lz4")
-        
-    # calculate diff data
-    changesPath = os.path.normpath(os.path.join(base_path, "..", "dataStore", "historychanges"))
-    try:
+        ut.write_file(df=LKcases, fn=LKcasesFull, compression="lz4")
         LKDiffCases = ut.get_different_rows(oldLKcases, LKcases)
         LKDiffCases.set_index(["i", "m"], inplace=True, drop=False)
         oldLKcases.set_index(["i", "m"], inplace=True, drop=False)
         LKDiffCases["dc"] = LKDiffCases["c"] - oldLKcases["c"]
         LKDiffCases["dc"] = LKDiffCases["dc"].fillna(LKDiffCases["c"])
-    except:
+    else:
+        ut.write_file(df=LKcases, fn=LKcasesFull, compression="lz4")
         LKDiffCases = LKcases.copy()
         LKDiffCases["dc"] = LKDiffCases["c"]
-    
-    try:
+
+    if os.path.exists(LKdeathsFull):
+        oldLKdeaths = ut.read_file(fn=LKdeathsFull)
+        ut.write_file(df=LKdeaths, fn=LKdeathsFull, compression="lz4")
         LKDiffDeaths = ut.get_different_rows(oldLKdeaths, LKdeaths)
-    except:
+    else:
+        ut.write_file(df=LKdeaths, fn=LKdeathsFull, compression="lz4")
         LKDiffDeaths = LKdeaths.copy()
-    
-    try:
+
+    if os.path.exists(LKrecoveredFull):
+        oldLKrecovered = ut.read_file(fn=LKrecoveredFull)
+        ut.write_file(df=LKrecovered, fn=LKrecoveredFull, compression="lz4")
         LKDiffRecovered = ut.get_different_rows(oldLKrecovered, LKrecovered)
-    except:
+    else:
+        ut.write_file(df=LKrecovered, fn=LKrecoveredFull, compression="lz4")
         LKDiffRecovered = LKrecovered.copy()
-    
-    try:
+
+    if os.path.exists(LKincidenceFull):
+        oldLKincidence = ut.read_file(fn=LKincidenceFull)
+        ut.write_file(df=LKincidence, fn=LKincidenceFull, compression="lz4")
         # dont compare float values
         oldLKincidence.drop("i7", inplace=True, axis=1)
         temp = LKincidence.copy()
@@ -143,30 +118,44 @@ def update(meta, BL, LK, mode="auto"):
         temp.set_index(["i","m"], inplace=True, drop=True)
         LKDiffIncidence["i7"] = temp["i7"]
         LKDiffIncidence.reset_index(inplace=True, drop=True)
-    except:
+    else:
+        ut.write_file(df=LKincidence, fn=LKincidenceFull, compression="lz4")
         LKDiffIncidence = LKincidence.copy()
-
-    try:
+    
+    # read oldBL(cases, deaths, recovered, incidence) if old file exist
+    # write new data
+    if os.path.exists(BLcasesFull):
+        oldBLcases = ut.read_file(fn=BLcasesFull)
+        ut.write_file(df=BLcases, fn= BLcasesFull, compression="lz4")
         BLDiffCases = ut.get_different_rows(oldBLcases, BLcases)
         BLDiffCases.set_index(["i", "m"], inplace=True, drop=False)
         oldBLcases.set_index(["i","m"], inplace=True, drop=False)
         BLDiffCases["dc"] = BLDiffCases["c"] - oldBLcases["c"]
         BLDiffCases["dc"] = BLDiffCases["dc"].fillna(BLDiffCases["c"])
-    except:
+    else:
+        ut.write_file(df=BLcases, fn= BLcasesFull, compression="lz4")
         BLDiffCases = BLcases.copy()
         BLDiffCases["dc"] = BLDiffCases["c"]
-    
-    try:
+        
+    if os.path.exists(BLdeathsFull):
+        oldBLdeaths = ut.read_file(fn=BLdeathsFull)
+        ut.write_file(df=BLdeaths, fn=BLdeathsFull, compression="lz4")
         BLDiffDeaths = ut.get_different_rows(oldBLdeaths, BLdeaths)
-    except:
+    else:
+        ut.write_file(df=BLdeaths, fn=BLdeathsFull, compression="lz4")
         BLDiffDeaths = BLdeaths.copy()
     
-    try:
+    if os.path.exists(BLrecoveredFull):
+        oldBLrecovered = ut.read_file(fn=BLrecoveredFull)
+        ut.write_file(df=BLrecovered, fn=BLrecoveredFull, compression="lz4")
         BLDiffRecovered = ut.get_different_rows(oldBLrecovered, BLrecovered)
-    except:
+    else:
+        ut.write_file(df=BLrecovered, fn=BLrecoveredFull, compression="lz4")
         BLDiffRecovered = BLrecovered.copy()
     
-    try:
+    if os.path.exists(BLincidenceFull):
+        oldBLincidence = ut.read_file(fn=BLincidenceFull)
+        ut.write_file(df=BLincidence, fn=BLincidenceFull, compression="lz4")
         oldBLincidence.drop("i7", inplace=True, axis=1)
         temp = BLincidence.copy()
         BLincidence.drop("i7", inplace=True, axis=1)
@@ -175,9 +164,13 @@ def update(meta, BL, LK, mode="auto"):
         temp.set_index(["i","m"], inplace=True, drop=True)
         BLDiffIncidence["i7"] = temp["i7"]
         BLDiffIncidence.reset_index(inplace=True, drop=True)
-    except:
+    else:
+        ut.write_file(df=BLincidence, fn=BLincidenceFull, compression="lz4")
         BLDiffIncidence = BLincidence.copy()
-
+    
+    # calculate diff data
+    changesPath = os.path.normpath(os.path.join(base_path, "..", "dataStore", "historychanges"))
+        
     ChangeDateInt = (Datenstand - pd.to_datetime('2020-01-01')).days
     LKDiffCases["cD"] = ChangeDateInt
     LKDiffDeaths["cD"] = ChangeDateInt
@@ -209,28 +202,21 @@ def update(meta, BL, LK, mode="auto"):
     
     LKDiffCases["dc"] = LKDiffCases["dc"].astype(int)
     LKDiffCases.reset_index(inplace=True, drop=True)
-    LKDiffCases.sort_values(by=["i", "m", "cD"], inplace=True)
     if os.path.exists(LKDiffCasesFull):
         ut.write_csv(df=LKDiffCases, filename=LKDiffFile, path=DiffCasesPath, dtype=HCC_dtp, mode='a')
     else:
         ut.write_csv(df=LKDiffCases, filename=LKDiffFile, path=DiffCasesPath, dtype=HCC_dtp)
 
-    LKDiffDeaths.reset_index(inplace=True, drop=True)
-    LKDiffDeaths.sort_values(by=["i", "m", "cD"], inplace=True)
     if os.path.exists(LKDiffDeathsFull):
         ut.write_csv(df=LKDiffDeaths, path=DiffDeathsPath, filename=LKDiffFile, dtype=HCD_dtp, mode='a')
     else:
         ut.write_csv(df=LKDiffDeaths, path=DiffDeathsPath, filename=LKDiffFile, dtype=HCD_dtp)
 
-    LKDiffRecovered.reset_index(inplace=True, drop=True)
-    LKDiffRecovered.sort_values(by=["i", "m", "cD"], inplace=True)
     if os.path.exists(LKDiffRecoveredFull):
         ut.write_csv(df=LKDiffRecovered, path=DiffRecoveredPath, filename=LKDiffFile, dtype=HCR_dtp, mode='a')
     else:
         ut.write_csv(df=LKDiffRecovered, path=DiffRecoveredPath, filename=LKDiffFile, dtype=HCR_dtp)
 
-    LKDiffIncidence.reset_index(inplace=True, drop=True)
-    LKDiffIncidence.sort_values(by=["i", "m", "cD"], inplace=True)
     if os.path.exists(LKDiffIncidenceFull):
         ut.write_csv(df=LKDiffIncidence, path=DiffIncidencePath, filename=LKDiffFile, dtype=HCI_dtp, mode='a')
     else:
@@ -238,28 +224,21 @@ def update(meta, BL, LK, mode="auto"):
     
     BLDiffCases["dc"] = BLDiffCases["dc"].astype(int)
     BLDiffCases.reset_index(inplace=True, drop=True)
-    BLDiffCases.sort_values(by=["i", "m", "cD"], inplace=True)
     if os.path.exists(BLDiffCasesFull):
         ut.write_csv(df=BLDiffCases, path=DiffCasesPath, filename=BLDiffFile, dtype=HCC_dtp, mode='a')
     else:
         ut.write_csv(df=BLDiffCases, path=DiffCasesPath, filename=BLDiffFile, dtype=HCC_dtp)
 
-    BLDiffDeaths.reset_index(inplace=True, drop=True)
-    BLDiffDeaths.sort_values(by=["i", "m", "cD"], inplace=True)
     if os.path.exists(BLDiffDeathsFull):
         ut.write_csv(df=BLDiffDeaths, path=DiffDeathsPath, filename=BLDiffFile, dtype=HCD_dtp, mode='a')
     else:
         ut.write_csv(df=BLDiffDeaths, path=DiffDeathsPath, filename=BLDiffFile, dtype=HCD_dtp)
 
-    BLDiffRecovered.reset_index(inplace=True, drop=True)
-    BLDiffRecovered.sort_values(by=["i", "m", "cD"], inplace=True)
     if os.path.exists(BLDiffRecoveredFull):
         ut.write_csv(df=BLDiffRecovered, path=DiffRecoveredPath, filename=BLDiffFile, dtype=HCR_dtp, mode='a')
     else:
         ut.write_csv(df=BLDiffRecovered, path=DiffRecoveredPath, filename=BLDiffFile, dtype=HCR_dtp)
     
-    BLDiffIncidence.reset_index(inplace=True, drop=True)
-    BLDiffIncidence.sort_values(by=["i", "m", "cD"], inplace=True)
     if os.path.exists(BLDiffIncidenceFull):
         ut.write_csv(df=BLDiffIncidence, path=DiffIncidencePath, filename=BLDiffFile, dtype=HCI_dtp, mode='a')
     else:
@@ -302,7 +281,7 @@ def update_mass(meta):
     LK.drop(["NeuerFall", "NeuerTodesfall", "NeuGenesen"], inplace=True, axis=1)
     LK.rename(columns={"IdLandkreis": "i", "Meldedatum": "m", "AnzahlFall": "c", "AnzahlTodesfall": "d", "AnzahlGenesen": "r"}, inplace=True)
     agg_key = {
-        c: "max" if c in ["IdBundesland"] else "sum"
+        c: "max" if c in ["i"] else "sum"
         for c in LK.columns
         if c not in key_list_LK
     }
@@ -317,7 +296,7 @@ def update_mass(meta):
     BL["i"] = BL["i"].str.slice(0,2)
     BL = ut.squeeze_dataframe(BL)
     agg_key = {
-        c: "max" if c in ["IdLandkreis"] else "sum"
+        c: "max" if c in ["i"] else "sum"
         for c in BL.columns
         if c not in key_list_BL
     }
