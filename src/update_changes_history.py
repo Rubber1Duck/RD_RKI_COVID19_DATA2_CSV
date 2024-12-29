@@ -42,24 +42,16 @@ def update(meta, BL, LK, mode="auto"):
     # df2 = df1[['A', 'C']].copy()
     # split LK
     LKcases = LK[["i", "m", "c"]].copy()
-    LKcases["c"] = LKcases["c"].astype("int64")
     LKdeaths = LK[["i", "m", "d"]].copy()
-    LKdeaths["d"] = LKdeaths["d"].astype("int64")
     LKrecovered = LK[["i", "m", "r"]].copy()
-    LKrecovered["r"] = LKrecovered["r"].astype("int64")
     LKincidence = LK[["i", "m", "c7", "i7"]].copy()
-    LKincidence["c7"] = LKincidence["c7"].astype("int64")
-    
+        
     # split BL
     BLcases = BL[["i", "m", "c"]].copy()
-    BLcases["c"] = BLcases["c"].astype("int64")
     BLdeaths = BL[["i", "m", "d"]].copy()
-    BLdeaths["d"] = BLdeaths["d"].astype("int64")
     BLrecovered = BL[["i", "m", "r"]].copy()
-    BLrecovered["r"] = BLrecovered["r"].astype("int64")
     BLincidence = BL[["i", "m", "c7", "i7"]].copy()
-    BLincidence["c7"] = BLincidence["c7"].astype("int64")
-    
+        
     historyPath = os.path.normpath(os.path.join(base_path, "..", "dataStore", "history"))
     
     LKFile = "districts.feather"

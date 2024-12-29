@@ -1,6 +1,7 @@
 import os, json, sys, requests
 import datetime as dt
 import time as time
+import pandas as pd
 from update_changes_history import update, update_mass
 
 def build_meta(datum):
@@ -105,6 +106,38 @@ if __name__ == '__main__':
     t2 = time.time()
     total += (t2 - t1)
     print(f" {round(t2 - t1, 3)} sec. total: {round(total, 1)} secs.")
+  
+  print(f"sort csv files.", end="")
+  t1 = time.time()
+  
+  HCC = {"i": "str", "m": "int64", "c": "int64", "dc": "int64", "cD": "int64"}
+  HCD = {"i": "str", "m": "int64", "d": "int64", "cD": "int64"}
+  HCR = {"i": "str", "m": "int64", "r": "int64", "cD": "int64"}
+  HCI = {"i": "str", "m": "int64", "c7": "int64", "i7": "float", "cD": "int64"}
+  
+  file_list = []
+  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "cases", "districts_Diff.csv"), HCC))
+  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "deaths", "districts_Diff.csv"), HCD))
+  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "recovered", "districts_Diff.csv"), HCR))
+  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "incidence", "districts_Diff.csv"), HCI))
+  
+  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "cases", "states_Diff.csv"), HCC))
+  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "deaths", "states_Diff.csv"), HCD))
+  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "recovered", "states_Diff.csv"), HCR))
+  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "incidence", "states_Diff.csv"), HCI))
+
+  for file_full, dtypes in file_list:
+    oldSize = os.path.getsize(file_full)
+    DF = pd.read_csv(file_full, usecols=dtypes.keys(), dtype=dtypes)
+    DF.sort_values(["i", "m", "cD"], axis=0, inplace=True)
+    DF.reset_index(drop=True, inplace=True)
+    with open(file_full, "wb") as csvfile:
+      DF.to_csv(csvfile, index=False, header=True, lineterminator="\n", encoding="utf-8", date_format="%Y-%m-%d", columns=dtypes.keys())
+    newSize = os.path.getsize(file_full)
+    print(f" Oldsize: {oldSize} ; Newsize: {newSize}")
+  
+  t2 = time.time()
+  print(f" Done in {round(t2 - t1, 3)} secs.")
   endTime = dt.datetime.now()
   print(f"total python time : {endTime - startTime}")
   
