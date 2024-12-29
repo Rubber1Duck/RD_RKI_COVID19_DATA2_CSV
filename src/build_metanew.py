@@ -85,6 +85,7 @@ if __name__ == '__main__':
   sDatObj = dt.datetime.strptime(startdatum, "%Y-%m-%d")
   eDatObj = dt.datetime.strptime(enddatum, "%Y-%m-%d")
   delta = dt.timedelta(days=1)
+  total = 0
   while sDatObj <= eDatObj:
     t1 = time.time() 
     print(f"running on {dt.datetime.strftime(sDatObj, '%Y-%m-%d')}", end="")
@@ -102,7 +103,8 @@ if __name__ == '__main__':
     with open(meta_path, "w", encoding="utf8") as json_file:
       json.dump(new_meta, json_file, ensure_ascii=False)
     t2 = time.time()
-    print(f" {t2 - t1} sec.") 
+    total += (t2 - t1)
+    print(f" {round(t2 - t1, 3)} sec. total: {round(total, 1)} secs.")
   endTime = dt.datetime.now()
   print(f"total python time : {endTime - startTime}")
   
