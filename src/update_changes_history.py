@@ -36,8 +36,8 @@ def update(meta, BL, LK, mode="auto"):
     # i7 = incidence7d (incidence7days)
 
     #convert dates to following numbers since 2020-01-01 to hold the files as short as possible
-    LK["m"] = (pd.to_datetime(LK['m'], format='%Y-%m-%d') - pd.to_datetime('2020-01-01')).dt.days
-    BL["m"] = (pd.to_datetime(BL['m'], format='%Y-%m-%d') - pd.to_datetime('2020-01-01')).dt.days
+    #LK["m"] = (pd.to_datetime(LK['m'], format='%Y-%m-%d') - pd.to_datetime('2020-01-01')).dt.days
+    #BL["m"] = (pd.to_datetime(BL['m'], format='%Y-%m-%d') - pd.to_datetime('2020-01-01')).dt.days
 
     # df2 = df1[['A', 'C']].copy()
     # split LK
@@ -156,16 +156,17 @@ def update(meta, BL, LK, mode="auto"):
         BLDiffIncidence = BLincidence.copy()
     
     # calculate diff data
-    ChangeDateInt = (Datenstand - pd.to_datetime('2020-01-01')).days
-    LKDiffCases["cD"] = ChangeDateInt
-    LKDiffDeaths["cD"] = ChangeDateInt
-    LKDiffRecovered["cD"] = ChangeDateInt
-    LKDiffIncidence["cD"] = ChangeDateInt
+    #ChangeDateInt = (Datenstand - pd.to_datetime('2020-01-01')).days
+    ChangeDate = Datenstand.strftime("%Y-%m-%d")
+    LKDiffCases["cD"] = ChangeDate
+    LKDiffDeaths["cD"] = ChangeDate
+    LKDiffRecovered["cD"] = ChangeDate
+    LKDiffIncidence["cD"] = ChangeDate
     
-    BLDiffCases["cD"] = ChangeDateInt
-    BLDiffDeaths["cD"] = ChangeDateInt
-    BLDiffRecovered["cD"] = ChangeDateInt
-    BLDiffIncidence["cD"] = ChangeDateInt
+    BLDiffCases["cD"] = ChangeDate
+    BLDiffDeaths["cD"] = ChangeDate
+    BLDiffRecovered["cD"] = ChangeDate
+    BLDiffIncidence["cD"] = ChangeDate
     
     LKDiffCasesFull = os.path.join(base_path, "..", "dataStore", "historychanges", "cases", "districts_Diff.csv")
     LKDiffDeathsFull = os.path.join(base_path, "..", "dataStore", "historychanges", "deaths", "districts_Diff.csv")
