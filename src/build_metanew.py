@@ -110,24 +110,28 @@ if __name__ == '__main__':
   print(f"sort csv files.")
   t1 = time.time()
   
-  HCC = {"i": "str", "m": "object", "c": "int64", "dc": "int64", "cD": "int64"}
-  HCD = {"i": "str", "m": "object", "d": "int64", "cD": "int64"}
-  HCR = {"i": "str", "m": "object", "r": "int64", "cD": "int64"}
-  HCI = {"i": "str", "m": "object", "c7": "int64", "i7": "float", "cD": "int64"}
+  HCC = {"i": "str", "m": "str", "c": "int64", "dc": "int64", "cD": "str"}
+  HCD = {"i": "str", "m": "str", "d": "int64", "cD": "str"}
+  HCR = {"i": "str", "m": "str", "r": "int64", "cD": "str"}
+  HCI = {"i": "str", "m": "str", "c7": "int64", "i7": "float", "cD": "str"}
   
   file_list = []
-  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "cases", "districts_Diff.csv"), HCC))
-  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "deaths", "districts_Diff.csv"), HCD))
-  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "recovered", "districts_Diff.csv"), HCR))
-  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "incidence", "districts_Diff.csv"), HCI))
+  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "cases", "districts_Diff.csv"), HCC, "D"))
+  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "deaths", "districts_Diff.csv"), HCD, "D"))
+  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "recovered", "districts_Diff.csv"), HCR, "D"))
+  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "incidence", "districts_Diff.csv"), HCI, "D"))
   
-  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "cases", "states_Diff.csv"), HCC))
-  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "deaths", "states_Diff.csv"), HCD))
-  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "recovered", "states_Diff.csv"), HCR))
-  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "incidence", "states_Diff.csv"), HCI))
+  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "cases", "states_Diff.csv"), HCC, "S"))
+  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "deaths", "states_Diff.csv"), HCD, "S"))
+  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "recovered", "states_Diff.csv"), HCR, "S"))
+  file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "incidence", "states_Diff.csv"), HCI, "S"))
 
-  for file_full, dtypes in file_list:
-    DF = pd.read_csv(file_full, usecols=dtypes.keys(), dtype=dtypes)
+  for file_full, dtypes, region in file_list:
+    DF = pd.read_csv(file_full, engine="pyarrow", usecols=dtypes.keys(), dtype=dtypes)
+    if region == "D":
+      DF["i"] = DF['i'].map('{:0>5}'.format)
+    else:
+      DF["i"] = DF['i'].map('{:0>2}'.format)
     DF.sort_values(["i", "m", "cD"], axis=0, inplace=True)
     DF.reset_index(drop=True, inplace=True)
     with open(file_full, "wb") as csvfile:
