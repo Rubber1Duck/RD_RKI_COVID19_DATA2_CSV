@@ -110,10 +110,10 @@ if __name__ == '__main__':
   print(f"sort csv files.")
   t1 = time.time()
   
-  HCC = {"i": "str", "m": "int64", "c": "int64", "dc": "int64", "cD": "int64"}
-  HCD = {"i": "str", "m": "int64", "d": "int64", "cD": "int64"}
-  HCR = {"i": "str", "m": "int64", "r": "int64", "cD": "int64"}
-  HCI = {"i": "str", "m": "int64", "c7": "int64", "i7": "float", "cD": "int64"}
+  HCC = {"i": "str", "m": "str", "c": "int64", "dc": "int64", "cD": "int64"}
+  HCD = {"i": "str", "m": "str", "d": "int64", "cD": "int64"}
+  HCR = {"i": "str", "m": "str", "r": "int64", "cD": "int64"}
+  HCI = {"i": "str", "m": "str", "c7": "int64", "i7": "float", "cD": "int64"}
   
   file_list = []
   file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "cases", "districts_Diff.csv"), HCC))
