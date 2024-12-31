@@ -319,17 +319,17 @@ def update_mass(meta):
     LK["r"] = LK["r"].fillna(0).astype(int)
     
     BL.sort_values(["i", "m"], axis=0, inplace=True)
-    BL.reset_index(inplace=True, drop=True)
     BL = BL.groupby(["i"], observed=True).apply_parallel(ut.calc_incidence, progressbar=False)
     BL["i7"] = (BL["c7"] / BL["Einwohner"] * 100000).round(5)
     BL.drop(["Einwohner"], inplace=True, axis=1)
+    BL.reset_index(inplace=True, drop=True)
         
     LK.sort_values(["i", "m"], axis=0, inplace=True)
-    LK.reset_index(inplace=True, drop=True)
     LK = LK.groupby(["i"], observed=True).apply_parallel(ut.calc_incidence, progressbar=False)
     LK["i7"] = (LK["c7"] / LK["Einwohner"] * 100000).round(5)
     LK.drop(["Einwohner"], inplace=True, axis=1)
-    
+    LK.reset_index(inplace=True, drop=True)
+
     update(meta=meta, BL=BL, LK=LK, mode="init")
     
     return
