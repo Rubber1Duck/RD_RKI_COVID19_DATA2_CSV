@@ -107,7 +107,7 @@ if __name__ == '__main__':
     total += (t2 - t1)
     print(f" {round(t2 - t1, 3)} sec. total: {round(total, 1)} secs.")
   
-  print(f"sort csv files.", end="")
+  print(f"sort csv files.")
   t1 = time.time()
   
   HCC = {"i": "str", "m": "int64", "c": "int64", "dc": "int64", "cD": "int64"}
@@ -127,17 +127,15 @@ if __name__ == '__main__':
   file_list.append((os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataStore", "historychanges", "incidence", "states_Diff.csv"), HCI))
 
   for file_full, dtypes in file_list:
-    oldSize = os.path.getsize(file_full)
     DF = pd.read_csv(file_full, usecols=dtypes.keys(), dtype=dtypes)
     DF.sort_values(["i", "m", "cD"], axis=0, inplace=True)
     DF.reset_index(drop=True, inplace=True)
     with open(file_full, "wb") as csvfile:
       DF.to_csv(csvfile, index=False, header=True, lineterminator="\n", encoding="utf-8", date_format="%Y-%m-%d", columns=dtypes.keys())
-    newSize = os.path.getsize(file_full)
-    print(f" Oldsize: {oldSize} ; Newsize: {newSize}")
+    print(f"{file_full}")
   
   t2 = time.time()
-  print(f" Done in {round(t2 - t1, 3)} secs.")
+  print(f"Done in {round(t2 - t1, 3)} secs.")
   endTime = dt.datetime.now()
   print(f"total python time : {endTime - startTime}")
   

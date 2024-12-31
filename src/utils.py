@@ -18,12 +18,11 @@ def squeeze_dataframe(df):
     return df
 
 
-def write_csv(df, filename, path, dtype, mode='w'):
-    fullpath = os.path.join(path, filename)
+def write_csv(df, full_fn, dtype, mode='w'):
     header = True 
     if mode == 'a':
         header = False
-    df.to_csv(path_or_buf=fullpath, mode=mode, index=False, header=header, lineterminator="\n", encoding="utf-8", date_format="%Y-%m-%d", columns=dtype.keys())
+    df.to_csv(path_or_buf=full_fn, mode=mode, index=False, header=header, lineterminator="\n", encoding="utf-8", date_format="%Y-%m-%d", columns=dtype.keys())
     return
 
 
@@ -83,9 +82,8 @@ def read_file(fn):
     return df
 
 
-def read_csv(filename, path, dtype):
-    full_filename = os.path.join(path, filename)
-    df = pd.read_csv(filepath_or_buffer=full_filename, engine="pyarrow", usecols=dtype.keys(), dtype=dtype)
+def read_csv(full_fn, dtype):
+    df = pd.read_csv(filepath_or_buffer=full_fn, engine="pyarrow", usecols=dtype.keys(), dtype=dtype)
     return df 
 
 

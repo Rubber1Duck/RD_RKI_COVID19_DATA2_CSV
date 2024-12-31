@@ -52,20 +52,15 @@ def update(meta, BL, LK, mode="auto"):
     BLrecovered = BL[["i", "m", "r"]].copy()
     BLincidence = BL[["i", "m", "c7", "i7"]].copy()
         
-    historyPath = os.path.normpath(os.path.join(base_path, "..", "dataStore", "history"))
+    LKcasesFull = os.path.join(base_path, "..", "dataStore", "history", "cases", "districts.feather")
+    LKdeathsFull = os.path.join(base_path, "..", "dataStore", "history", "deaths", "districts.feather")
+    LKrecoveredFull = os.path.join(base_path, "..", "dataStore", "history", "recovered", "districts.feather")
+    LKincidenceFull = os.path.join(base_path, "..", "dataStore", "history", "incidence", "districts.feather")
     
-    LKFile = "districts.feather"
-    BLFile = "states.feather"
-    
-    LKcasesFull = os.path.join(historyPath, "cases", LKFile)
-    LKdeathsFull = os.path.join(historyPath, "deaths", LKFile)
-    LKrecoveredFull = os.path.join(historyPath, "recovered", LKFile)
-    LKincidenceFull = os.path.join(historyPath, "incidence", LKFile)
-    
-    BLcasesFull = os.path.join(historyPath, "cases", BLFile)
-    BLdeathsFull = os.path.join(historyPath, "deaths", BLFile)
-    BLrecoveredFull = os.path.join(historyPath, "recovered", BLFile)
-    BLincidenceFull = os.path.join(historyPath, "incidence", BLFile)
+    BLcasesFull = os.path.join(base_path, "..", "dataStore", "history", "cases", "states.feather")
+    BLdeathsFull = os.path.join(base_path, "..", "dataStore", "history", "deaths", "states.feather")
+    BLrecoveredFull = os.path.join(base_path, "..", "dataStore", "history", "recovered", "states.feather")
+    BLincidenceFull = os.path.join(base_path, "..", "dataStore", "history", "incidence", "states.feather")
 
     # read oldLK(cases, deaths, recovered, incidence) if old file exist
     # write new data 
@@ -161,8 +156,6 @@ def update(meta, BL, LK, mode="auto"):
         BLDiffIncidence = BLincidence.copy()
     
     # calculate diff data
-    changesPath = os.path.normpath(os.path.join(base_path, "..", "dataStore", "historychanges"))
-        
     ChangeDateInt = (Datenstand - pd.to_datetime('2020-01-01')).days
     LKDiffCases["cD"] = ChangeDateInt
     LKDiffDeaths["cD"] = ChangeDateInt
@@ -174,67 +167,59 @@ def update(meta, BL, LK, mode="auto"):
     BLDiffRecovered["cD"] = ChangeDateInt
     BLDiffIncidence["cD"] = ChangeDateInt
     
-    LKDiffFile = "districts_Diff.csv"
-    BLDiffFile = "states_Diff.csv"
+    LKDiffCasesFull = os.path.join(base_path, "..", "dataStore", "historychanges", "cases", "districts_Diff.csv")
+    LKDiffDeathsFull = os.path.join(base_path, "..", "dataStore", "historychanges", "deaths", "districts_Diff.csv")
+    LKDiffRecoveredFull = os.path.join(base_path, "..", "dataStore", "historychanges", "recovered", "districts_Diff.csv")
+    LKDiffIncidenceFull = os.path.join(base_path, "..", "dataStore", "historychanges", "incidence", "districts_Diff.csv")
 
-    DiffCasesPath = os.path.join(changesPath, "cases")
-    DiffDeathsPath = os.path.join(changesPath, "deaths")
-    DiffRecoveredPath = os.path.join(changesPath, "recovered")
-    DiffIncidencePath = os.path.join(changesPath, "incidence")
-    
-    LKDiffCasesFull = os.path.join(DiffCasesPath, LKDiffFile)
-    LKDiffDeathsFull = os.path.join(DiffDeathsPath, LKDiffFile)
-    LKDiffRecoveredFull = os.path.join(DiffRecoveredPath, LKDiffFile)
-    LKDiffIncidenceFull = os.path.join(DiffIncidencePath, LKDiffFile)
-
-    BLDiffCasesFull = os.path.join(DiffCasesPath, BLDiffFile)
-    BLDiffDeathsFull = os.path.join(DiffDeathsPath, BLDiffFile)
-    BLDiffRecoveredFull = os.path.join(DiffRecoveredPath, BLDiffFile)
-    BLDiffIncidenceFull = os.path.join(DiffIncidencePath, BLDiffFile)
+    BLDiffCasesFull = os.path.join(base_path, "..", "dataStore", "historychanges", "cases", "states_Diff.csv")
+    BLDiffDeathsFull = os.path.join(base_path, "..", "dataStore", "historychanges", "deaths", "states_Diff.csv")
+    BLDiffRecoveredFull = os.path.join(base_path, "..", "dataStore", "historychanges", "recovered", "states_Diff.csv")
+    BLDiffIncidenceFull = os.path.join(base_path, "..", "dataStore", "historychanges", "incidence", "states_Diff.csv")
     
     LKDiffCases["dc"] = LKDiffCases["dc"].astype(int)
     LKDiffCases.reset_index(inplace=True, drop=True)
     if os.path.exists(LKDiffCasesFull):
-        ut.write_csv(df=LKDiffCases, filename=LKDiffFile, path=DiffCasesPath, dtype=HCC_dtp, mode='a')
+        ut.write_csv(df=LKDiffCases, full_fn=LKDiffCasesFull, dtype=HCC_dtp, mode='a')
     else:
-        ut.write_csv(df=LKDiffCases, filename=LKDiffFile, path=DiffCasesPath, dtype=HCC_dtp)
+        ut.write_csv(df=LKDiffCases, full_fn=LKDiffCasesFull, dtype=HCC_dtp)
 
     if os.path.exists(LKDiffDeathsFull):
-        ut.write_csv(df=LKDiffDeaths, path=DiffDeathsPath, filename=LKDiffFile, dtype=HCD_dtp, mode='a')
+        ut.write_csv(df=LKDiffDeaths, full_fn=LKDiffDeathsFull, dtype=HCD_dtp, mode='a')
     else:
-        ut.write_csv(df=LKDiffDeaths, path=DiffDeathsPath, filename=LKDiffFile, dtype=HCD_dtp)
+        ut.write_csv(df=LKDiffDeaths, full_fn=LKDiffDeathsFull, dtype=HCD_dtp)
 
     if os.path.exists(LKDiffRecoveredFull):
-        ut.write_csv(df=LKDiffRecovered, path=DiffRecoveredPath, filename=LKDiffFile, dtype=HCR_dtp, mode='a')
+        ut.write_csv(df=LKDiffRecovered, full_fn=LKDiffRecoveredFull, dtype=HCR_dtp, mode='a')
     else:
-        ut.write_csv(df=LKDiffRecovered, path=DiffRecoveredPath, filename=LKDiffFile, dtype=HCR_dtp)
+        ut.write_csv(df=LKDiffRecovered, full_fn=LKDiffRecoveredFull, dtype=HCR_dtp)
 
     if os.path.exists(LKDiffIncidenceFull):
-        ut.write_csv(df=LKDiffIncidence, path=DiffIncidencePath, filename=LKDiffFile, dtype=HCI_dtp, mode='a')
+        ut.write_csv(df=LKDiffIncidence, full_fn=LKDiffIncidenceFull, dtype=HCI_dtp, mode='a')
     else:
-        ut.write_csv(df=LKDiffIncidence, path=DiffIncidencePath, filename=LKDiffFile, dtype=HCI_dtp)
+        ut.write_csv(df=LKDiffIncidence, full_fn=LKDiffIncidenceFull, dtype=HCI_dtp)
     
     BLDiffCases["dc"] = BLDiffCases["dc"].astype(int)
     BLDiffCases.reset_index(inplace=True, drop=True)
     if os.path.exists(BLDiffCasesFull):
-        ut.write_csv(df=BLDiffCases, path=DiffCasesPath, filename=BLDiffFile, dtype=HCC_dtp, mode='a')
+        ut.write_csv(df=BLDiffCases, full_fn=BLDiffCasesFull, dtype=HCC_dtp, mode='a')
     else:
-        ut.write_csv(df=BLDiffCases, path=DiffCasesPath, filename=BLDiffFile, dtype=HCC_dtp)
+        ut.write_csv(df=BLDiffCases, full_fn=BLDiffCasesFull, dtype=HCC_dtp)
 
     if os.path.exists(BLDiffDeathsFull):
-        ut.write_csv(df=BLDiffDeaths, path=DiffDeathsPath, filename=BLDiffFile, dtype=HCD_dtp, mode='a')
+        ut.write_csv(df=BLDiffDeaths, full_fn=BLDiffDeathsFull, dtype=HCD_dtp, mode='a')
     else:
-        ut.write_csv(df=BLDiffDeaths, path=DiffDeathsPath, filename=BLDiffFile, dtype=HCD_dtp)
+        ut.write_csv(df=BLDiffDeaths, full_fn=BLDiffDeathsFull, dtype=HCD_dtp)
 
     if os.path.exists(BLDiffRecoveredFull):
-        ut.write_csv(df=BLDiffRecovered, path=DiffRecoveredPath, filename=BLDiffFile, dtype=HCR_dtp, mode='a')
+        ut.write_csv(df=BLDiffRecovered, full_fn=BLDiffRecoveredFull, dtype=HCR_dtp, mode='a')
     else:
-        ut.write_csv(df=BLDiffRecovered, path=DiffRecoveredPath, filename=BLDiffFile, dtype=HCR_dtp)
+        ut.write_csv(df=BLDiffRecovered, full_fn=BLDiffRecoveredFull, dtype=HCR_dtp)
     
     if os.path.exists(BLDiffIncidenceFull):
-        ut.write_csv(df=BLDiffIncidence, path=DiffIncidencePath, filename=BLDiffFile, dtype=HCI_dtp, mode='a')
+        ut.write_csv(df=BLDiffIncidence, full_fn=BLDiffIncidenceFull, dtype=HCI_dtp, mode='a')
     else:
-        ut.write_csv(df=BLDiffIncidence, path=DiffIncidencePath, filename=BLDiffFile, dtype=HCI_dtp)
+        ut.write_csv(df=BLDiffIncidence, full_fn=BLDiffIncidenceFull, dtype=HCI_dtp)
     
     return
 
@@ -281,9 +266,7 @@ def update_mass(meta):
     
     LK["i"] = LK['i'].map('{:0>5}'.format)
     LK = ut.squeeze_dataframe(LK)
-    LK.sort_values(by=key_list_LK, inplace=True)
-    LK.reset_index(inplace=True, drop=True)
-        
+            
     BL = LK.copy()
     BL["i"] = BL["i"].str.slice(0,2)
     BL = ut.squeeze_dataframe(BL)
@@ -294,9 +277,7 @@ def update_mass(meta):
     }
     BL = BL.groupby(by=key_list_BL, as_index=False, observed=True).agg(agg_key)
     BL = ut.squeeze_dataframe(BL)
-    BL.sort_values(by=key_list_BL, inplace=True)
-    BL.reset_index(inplace=True, drop=True)
-      
+          
     agg_key = {
         c: "max" if c in ["i"] else "sum"
         for c in BL.columns
@@ -305,9 +286,7 @@ def update_mass(meta):
     ID0 = BL.groupby(by=key_list_ID0, as_index=False, observed=True).agg(agg_key)
     ID0["i"] = "00"
     BL = pd.concat([ID0, BL])
-    BL.sort_values(by=key_list_BL, inplace=True)
-    BL.reset_index(inplace=True, drop=True)
-
+    
     BL["m"] = BL["m"].astype(str)
     LK["m"] = LK["m"].astype(str)
         
