@@ -312,7 +312,7 @@ def update_mass(meta):
     LK["m"] = LK["m"].astype(str)
         
     # fill dates for every region
-    allDates = ut.squeeze_dataframe(pd.DataFrame(pd.date_range(end=(Datenstand - dt.timedelta(days=1)), start="2020-01-01").astype(str), columns=["m"]))
+    allDates = ut.squeeze_dataframe(pd.DataFrame(pd.date_range(end=(Datenstand - dt.timedelta(days=1)), start="2019-12-26").astype(str), columns=["m"]))
     # add Einwohner
     BL_BV = BV[((BV["AGS"].isin(BL["i"])) & (BV["GueltigAb"] <= Datenstand) & (BV["GueltigBis"] >= Datenstand) & (BV["Altersgruppe"] == "A00+") & (BV["AGS"].str.len() == 2))].copy()
     BL_BV.drop(["GueltigAb", "GueltigBis", "Altersgruppe", "männlich", "weiblich", "Name"], inplace=True, axis=1)
@@ -343,7 +343,6 @@ def update_mass(meta):
     BL = BL.groupby(["i"], observed=True).apply_parallel(ut.calc_incidence, progressbar=False)
     BL.reset_index(inplace=True, drop=True)
     BL.sort_values(["i", "m"], inplace=True, axis=0)
-    BL.reset_index(inplace=True, drop=True)
     BL["i7"] = (BL["c7"] / BL["Einwohner"] * 100000).round(5)
     BL.drop(["Einwohner"], inplace=True, axis=1)
         
@@ -351,7 +350,6 @@ def update_mass(meta):
     LK = LK.groupby(["i"], observed=True).apply_parallel(ut.calc_incidence, progressbar=False)
     LK.reset_index(inplace=True, drop=True)
     LK.sort_values(["i", "m"], inplace=True, axis=0)
-    LK.reset_index(inplace=True, drop=True)
     LK["i7"] = (LK["c7"] / LK["Einwohner"] * 100000).round(5)
     LK.drop(["Einwohner"], inplace=True, axis=1)
     
