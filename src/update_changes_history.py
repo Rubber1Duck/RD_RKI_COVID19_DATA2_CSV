@@ -239,10 +239,14 @@ def update_mass(meta):
     BV["GueltigAb"] = pd.to_datetime(BV["GueltigAb"])
     BV["GueltigBis"] = pd.to_datetime(BV["GueltigBis"])
 
-    # load covid latest from web
-    Datenstand = dt.datetime.fromtimestamp(meta["modified"] / 1000)
-    Datenstand = Datenstand.replace(hour=0, minute=0, second=0, microsecond=0)
-    LK = pd.read_csv(meta["filepath"], engine="pyarrow", usecols=CV_dtypes.keys(), dtype=CV_dtypes)
+    Datenstand = dt.datetime.fromtimestamp(meta["modified"] / 1000).replace(hour=0, minute=0, second=0, microsecond=0)
+    featherPath = meta["filepath"].replace("csv", "feather")[:-3]
+    if os.path.exists(featherPath):
+        LK = ut.read_file(fn=featherPath)
+    else:
+        LK = pd.read_csv(meta["filepath"], engine="pyarrow", usecols=CV_dtypes.keys(), dtype=CV_dtypes)
+        LK = ut.squeeze_dataframe(LK)
+        ut.write_file(df=LK, fn=featherPath, compression="lz4")
         
     # ----- Squeeze the dataframe to ideal memory size (see "compressing" Medium article and run_dataframe_squeeze.py for background)
     LK = ut.squeeze_dataframe(LK)
